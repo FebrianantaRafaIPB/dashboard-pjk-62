@@ -14,7 +14,7 @@ def load_data():
 
 df = load_data()
 
-# === CLEAN ===
+# === CLEAN DATA ===
 df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
 df["Kelompok Sedang"] = df["Kelompok Sedang"].fillna("").astype(str).str.strip()
 df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
@@ -50,7 +50,7 @@ group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
 st.subheader("📈 Completion Rate")
-chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(  # Steel Blue
+chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(  # Biru
     y=alt.Y(group_col, sort='-x', axis=alt.Axis(labelFontSize=10)),
     x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
     tooltip=[group_col, "Completion Rate %"]
@@ -71,7 +71,7 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
     x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
     color=alt.Color("Status:N", scale=alt.Scale(
         domain=["Graded", "Ungraded"],
-        range=["#2980b9", "#c0392b"]  # Biru & merah tua
+        range=["#3498db", "#e74c3c"]  # Biru & Merah
     )),
     tooltip=[group_col, "Status", "Count"]
 ).properties(height=320)
@@ -112,8 +112,8 @@ fig = px.bar(
     y="Count",
     color="Status",
     color_discrete_map={
-        "Completed": "#2ecc71",       # Emerald
-        "Not Completed": "#e74c3c"    # Alizarin
+        "Completed": "#3498db",       # Biru
+        "Not Completed": "#e74c3c"    # Merah
     },
     barmode="stack",
     labels={"Count": "Jumlah Mahasiswa"},
