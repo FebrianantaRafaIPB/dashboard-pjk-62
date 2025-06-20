@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+from itertools import product
 
 # === CONFIG PAGE ===
 st.set_page_config(layout="wide", page_title="Dashboard PJK MPKMB IPB 62")
@@ -56,10 +57,11 @@ sc1.metric("Total Maba", total_maba)
 sc2.metric("Maba Pita Merah", pita_merah)
 sc3.metric("Status Tidak Aktif", tidak_aktif)
 
-# === DATA UNTUK CHARTS ===
+# === CHART 1 DATA: Completion Rate ===
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
+# === CHART 2 DATA: Status Penugasan ===
 penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
 melted = df_filtered.melt(
     id_vars=[group_col],
@@ -71,14 +73,27 @@ melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
 status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
 ordered_groups = status_df[group_col].unique().tolist()
 
+# === CHART 3 DATA: Status Per Tugas (Fix Not Completed tidak muncul) ===
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
     var_name="Tugas", value_name="Status"
 ).dropna()
-tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
+
+# Bersihkan status
+tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
+
+# Group & count
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
 
-# === CHART 1: COMPLETION RATE (Full Width) ===
+# Force show both Completed / Not Completed
+all_tugas = tugas_status["Tugas"].unique()
+all_status = ["Completed", "Not Completed"]
+full_index = pd.DataFrame(product(all_tugas, all_status), columns=["Tugas", "Status"])
+
+# Gabungkan dengan nilai asli
+status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
+
+# === CHART 1 ===
 st.subheader("📈 Completion Rate")
 chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
     y=alt.Y(group_col, sort='-x', title=group_col, axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
@@ -87,28 +102,8 @@ chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
 ).properties(height=320)
 st.altair_chart(chart1, use_container_width=True)
 
-# === CHART 2: STATUS PENUGASAN (Full Width) ===
+# === CHART 2 ===
 st.subheader("📊 Status Penugasan")
 chart2 = alt.Chart(status_df).mark_bar().encode(
     y=alt.Y(group_col, sort=ordered_groups, title=group_col, axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
     x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
-    color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Graded", "Ungraded"],
-        range=["#3b5ba3", "#c0392b"]
-    )),
-    tooltip=[group_col, "Status", "Count"]
-).properties(height=320)
-st.altair_chart(chart2, use_container_width=True)
-
-# === CHART 3: STATUS PER TUGAS (Full Width) ===
-st.subheader("📌 Status Per Tugas")
-chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35, labelFontSize=10, titleFontSize=12)),
-    y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
-    color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Completed", "Not Completed"],
-        range=["#27ae60", "#e74c3c"]
-    )),
-    tooltip=["Tugas", "Status", "Count"]
-).properties(height=320)
-st.altair_chart(chart3, use_container_width=True)
