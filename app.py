@@ -93,13 +93,11 @@ full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# FIX stack order = merah atas
-status_tugas_df["Status"] = pd.Categorical(
-    status_tugas_df["Status"],
-    categories=["Not Completed", "Completed"],
-    ordered=True
+# SORT FIX - paksa merah di atas dengan urutan baris literal
+status_tugas_df = status_tugas_df.sort_values(
+    by=["Tugas", "Status"],
+    key=lambda col: col.map({"Completed": 0, "Not Completed": 1})
 )
-status_tugas_df = status_tugas_df.sort_values(["Tugas", "Status"])
 
 # Buat chart Plotly
 fig = px.bar(
@@ -108,10 +106,9 @@ fig = px.bar(
     y="Count",
     color="Status",
     color_discrete_map={
-        "Not Completed": "#e74c3c",
-        "Completed": "#27ae60"
+        "Completed": "#27ae60",
+        "Not Completed": "#e74c3c"
     },
-    category_orders={"Status": ["Not Completed", "Completed"]},
     barmode="stack",
     labels={"Count": "Jumlah Mahasiswa"},
     height=500
