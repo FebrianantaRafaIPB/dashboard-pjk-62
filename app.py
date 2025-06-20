@@ -50,7 +50,7 @@ group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
 st.subheader("📈 Completion Rate")
-chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
+chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(  # Steel Blue
     y=alt.Y(group_col, sort='-x', axis=alt.Axis(labelFontSize=10)),
     x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
     tooltip=[group_col, "Completion Rate %"]
@@ -71,7 +71,7 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
     x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
     color=alt.Color("Status:N", scale=alt.Scale(
         domain=["Graded", "Ungraded"],
-        range=["#3b5ba3", "#c0392b"]
+        range=["#2980b9", "#c0392b"]  # Biru & merah tua
     )),
     tooltip=[group_col, "Status", "Count"]
 ).properties(height=320)
@@ -112,8 +112,8 @@ fig = px.bar(
     y="Count",
     color="Status",
     color_discrete_map={
-        "Completed": "#27ae60",
-        "Not Completed": "#e74c3c"
+        "Completed": "#2ecc71",       # Emerald
+        "Not Completed": "#e74c3c"    # Alizarin
     },
     barmode="stack",
     labels={"Count": "Jumlah Mahasiswa"},
