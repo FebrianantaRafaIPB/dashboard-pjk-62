@@ -86,31 +86,32 @@ tugas_status = df_filtered[status_cols].melt(
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
+# Buat dataframe dengan kombinasi lengkap tugas x status
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
-
-# Tambahkan kombinasi kosong
 all_tugas = tugas_status["Tugas"].unique()
 full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# Urutan stack
-status_tugas_df["Status"] = pd.Categorical(status_tugas_df["Status"],
-                                           categories=["Completed", "Not Completed"],
-                                           ordered=True)
+# FIX stack order = merah atas
+status_tugas_df["Status"] = pd.Categorical(
+    status_tugas_df["Status"],
+    categories=["Not Completed", "Completed"],
+    ordered=True
+)
 status_tugas_df = status_tugas_df.sort_values(["Tugas", "Status"])
 
-# Bikin Chart 3
+# Buat chart Plotly
 fig = px.bar(
     status_tugas_df,
     x="Tugas",
     y="Count",
     color="Status",
     color_discrete_map={
-        "Completed": "#27ae60",
-        "Not Completed": "#e74c3c"
+        "Not Completed": "#e74c3c",
+        "Completed": "#27ae60"
     },
-    category_orders={"Status": ["Completed", "Not Completed"]},
+    category_orders={"Status": ["Not Completed", "Completed"]},
     barmode="stack",
     labels={"Count": "Jumlah Mahasiswa"},
     height=500
