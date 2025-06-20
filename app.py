@@ -24,7 +24,7 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
-    st.header("🔍 Filter")
+    st.header("Filter")
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
     kb_list = sorted(df["Kelompok Besar"].unique())
     ks_list = sorted(df["Kelompok Sedang"].unique())
@@ -51,7 +51,7 @@ if filter_ks != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
 
 # === TITLE & METRICS ===
-st.title("📊 DASHBOARD PJK MPKMB IPB 62 SARJANA")
+st.title("DASHBOARD PJK MPKMB IPB 62 SARJANA")
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Maba", len(df_filtered))
 col2.metric("Maba Pita Merah", (df_filtered["Status Pita"] == "Pita Merah").sum())
@@ -61,7 +61,7 @@ col3.metric("Status Tidak Aktif", (df_filtered["StatusRegistrasi"] == "Tidak Akt
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
-st.subheader("📈 Completion Rate")
+st.subheader("Completion Rate")
 chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
     y=alt.Y(group_col, sort='-x', axis=alt.Axis(labelFontSize=10)),
     x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
@@ -77,7 +77,7 @@ melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
 status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
 ordered_groups = status_df[group_col].unique().tolist()
 
-st.subheader("📊 Status Penugasan")
+st.subheader("Status Penugasan")
 chart2 = alt.Chart(status_df).mark_bar().encode(
     y=alt.Y(group_col, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
     x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
@@ -90,7 +90,7 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
 st.altair_chart(chart2, use_container_width=True)
 
 # === CHART 3: Status Per Tugas (Plotly) ===
-st.subheader("📌 Status Per Tugas (Plotly)")
+st.subheader("Status Completion Per Tugas")
 
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
@@ -137,7 +137,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 # === AI INSIGHT (DESKRIPTIF) ===
-st.subheader("🧠 Insight Otomatis")
+st.subheader("SI Insight")
 try:
     insight_lines = []
 
