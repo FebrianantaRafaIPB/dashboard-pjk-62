@@ -13,19 +13,29 @@ def load_data():
 
 df = load_data()
 
-# === CLEAN STRING FIELDS ===
+# === CLEAN & NORMALIZE STRING ===
 df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
 df["Kelompok Sedang"] = df["Kelompok Sedang"].fillna("").astype(str).str.strip()
 df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
 df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
+
+# === HILANGKAN BARIS KOSONG ===
+df = df[df["Kelompok Besar"] != ""]
+df = df[df["Kelompok Sedang"] != ""]
 
 # === UI FILTERS ===
 st.title("📊 DASHBOARD PJK MPKMB IPB 62 SARJANA")
 cols = st.columns(3)
 
 dimensi = cols[0].selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
-filter_kb = cols[1].selectbox("Kelompok Besar", ["(All)"] + sorted(df["Kelompok Besar"].unique()))
-filter_ks = cols[2].selectbox("Kelompok Sedang", ["(All)"] + sorted(df["Kelompok Sedang"].unique()))
+
+kelompok_besar_list = sorted(df["Kelompok Besar"].dropna().unique())
+kelompok_besar_list = [x for x in kelompok_besar_list if x.strip() != ""]
+filter_kb = cols[1].selectbox("Kelompok Besar", ["(All)"] + kelompok_besar_list)
+
+kelompok_sedang_list = sorted(df["Kelompok Sedang"].dropna().unique())
+kelompok_sedang_list = [x for x in kelompok_sedang_list if x.strip() != ""]
+filter_ks = cols[2].selectbox("Kelompok Sedang", ["(All)"] + kelompok_sedang_list)
 
 # === FILTERED DATA ===
 df_filtered = df.copy()
@@ -48,6 +58,14 @@ sc3.metric("Status Tidak Aktif", tidak_aktif)
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
+st.subheader("📈 Completion Rate")
+chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
+    x=alt.X(group_col, sort='-y'),
+    y=alt.Y("Completion Rate %:Q"),
+    tooltip=["Completion Rate %"]
+).properties(height=240)
+st.altair_chart(chart1, use_container_width=True)
+
 # === CHART 2: STATUS PENILAIAN PER KELOMPOK ===
 penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
 if penugasan_cols:
@@ -63,6 +81,18 @@ if penugasan_cols:
     status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
     ordered_groups = status_df[group_col].unique().tolist()
 
+    st.subheader("📊 Status Penugasan")
+    chart2 = alt.Chart(status_df).mark_bar().encode(
+        y=alt.Y(group_col, sort=ordered_groups, title=group_col),
+        x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas"),
+        color=alt.Color("Status:N", scale=alt.Scale(
+            domain=["Graded", "Ungraded"],
+            range=["#3b5ba3", "#c0392b"]
+        )),
+        tooltip=[group_col, "Status", "Count"]
+    ).properties(height=260)
+    st.altair_chart(chart2, use_container_width=True)
+
 # === CHART 3: STATUS PER TUGAS (COMPLETED VS NOT) ===
 status_cols = df_filtered.columns[20:26]  # Kolom U-Z
 tugas_status = df_filtered[status_cols].melt(
@@ -71,33 +101,6 @@ tugas_status = df_filtered[status_cols].melt(
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
 
-# === LAYOUT CHARTS ===
-with st.container():
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.subheader("📈 Completion Rate")
-        chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
-            x=alt.X(group_col, sort='-y'),
-            y=alt.Y("Completion Rate %:Q"),
-            tooltip=["Completion Rate %"]
-        ).properties(height=180)
-        st.altair_chart(chart1, use_container_width=True)
-
-    with c2:
-        st.subheader("📊 Status Penugasan")
-        chart2 = alt.Chart(status_df).mark_bar().encode(
-            y=alt.Y(group_col, sort=ordered_groups, title=group_col),
-            x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas"),
-            color=alt.Color("Status:N", scale=alt.Scale(
-                domain=["Graded", "Ungraded"],
-                range=["#3b5ba3", "#c0392b"]
-            )),
-            tooltip=[group_col, "Status", "Count"]
-        ).properties(height=180)
-        st.altair_chart(chart2, use_container_width=True)
-
-# === CHART 3 FULL WIDTH (Bawah) ===
 st.subheader("📌 Status Per Tugas")
 chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
     x=alt.X("Tugas:N", sort=None),
@@ -107,6 +110,6 @@ chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
         range=["#27ae60", "#e74c3c"]
     )),
     tooltip=["Tugas", "Status", "Count"]
-).properties(height=200)
+).properties(height=240)
 
 st.altair_chart(chart3, use_container_width=True)
