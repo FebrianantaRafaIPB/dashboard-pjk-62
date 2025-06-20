@@ -78,8 +78,8 @@ tugas_status = df_filtered[status_cols].melt(
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
 
-# === LAYOUT CHARTS ===
-c1, c2, c3 = st.columns(3)
+# === CHART 1 & 2 (SIDE BY SIDE) ===
+c1, c2 = st.columns(2)
 
 with c1:
     st.subheader("📈 Completion Rate")
@@ -87,7 +87,7 @@ with c1:
         y=alt.Y(group_col, sort='-x', title=group_col),
         x=alt.X("Completion Rate %:Q", title="Completion Rate"),
         tooltip=[group_col, "Completion Rate %"]
-    ).properties(height=180)
+    ).properties(height=220)
     st.altair_chart(chart1, use_container_width=True)
 
 with c2:
@@ -100,18 +100,18 @@ with c2:
             range=["#3b5ba3", "#c0392b"]
         )),
         tooltip=[group_col, "Status", "Count"]
-    ).properties(height=180)
+    ).properties(height=220)
     st.altair_chart(chart2, use_container_width=True)
 
-with c3:
-    st.subheader("📌 Status Per Tugas")
-    chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-        x=alt.X("Tugas:N", sort=None),
-        y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
-        color=alt.Color("Status:N", scale=alt.Scale(
-            domain=["Completed", "Not Completed"],
-            range=["#27ae60", "#e74c3c"]
-        )),
-        tooltip=["Tugas", "Status", "Count"]
-    ).properties(height=180)
-    st.altair_chart(chart3, use_container_width=True)
+# === CHART 3 (FULL WIDTH) ===
+st.subheader("📌 Status Per Tugas")
+chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
+    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35)),
+    y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
+    color=alt.Color("Status:N", scale=alt.Scale(
+        domain=["Completed", "Not Completed"],
+        range=["#27ae60", "#e74c3c"]
+    )),
+    tooltip=["Tugas", "Status", "Count"]
+).properties(height=240)
+st.altair_chart(chart3, use_container_width=True)
