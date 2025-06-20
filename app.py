@@ -73,14 +73,20 @@ melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
 status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
 ordered_groups = status_df[group_col].unique().tolist()
 
-# === CHART 3 DATA: Status Per Tugas (Fix Not Completed tidak muncul) ===
+# === CHART 3 DATA: Status Per Tugas ===
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
     var_name="Tugas", value_name="Status"
 ).dropna()
 
-# Bersihkan status
-tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
+# Normalize values
+tugas_status["Status"] = tugas_status["Status"].astype(str).str.strip().str.title()
+
+# Debug: show unique values (optional)
+st.write("🧪 Nilai unik kolom 'Status':", tugas_status["Status"].unique())
+
+# Filter hanya nilai valid
+tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
 # Group & count
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
@@ -90,7 +96,7 @@ all_tugas = tugas_status["Tugas"].unique()
 all_status = ["Completed", "Not Completed"]
 full_index = pd.DataFrame(product(all_tugas, all_status), columns=["Tugas", "Status"])
 
-# Gabungkan dengan nilai asli
+# Gabungkan
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
 # === CHART 1 ===
@@ -107,3 +113,23 @@ st.subheader("📊 Status Penugasan")
 chart2 = alt.Chart(status_df).mark_bar().encode(
     y=alt.Y(group_col, sort=ordered_groups, title=group_col, axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
     x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
+    color=alt.Color("Status:N", scale=alt.Scale(
+        domain=["Graded", "Ungraded"],
+        range=["#3b5ba3", "#c0392b"]
+    )),
+    tooltip=[group_col, "Status", "Count"]
+).properties(height=320)
+st.altair_chart(chart2, use_container_width=True)
+
+# === CHART 3 ===
+st.subheader("📌 Status Per Tugas")
+chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
+    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35, labelFontSize=10, titleFontSize=12)),
+    y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
+    color=alt.Color("Status:N", scale=alt.Scale(
+        domain=["Completed", "Not Completed"],
+        range=["#27ae60", "#e74c3c"]
+    )),
+    tooltip=["Tugas", "Status", "Count"]
+).properties(height=320)
+st.altair_chart(chart3, use_container_width=True)
