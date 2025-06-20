@@ -84,34 +84,34 @@ c1, c2 = st.columns(2)
 with c1:
     st.subheader("📈 Completion Rate")
     chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
-        y=alt.Y(group_col, sort='-x', title=group_col),
-        x=alt.X("Completion Rate %:Q", title="Completion Rate"),
+        y=alt.Y(group_col, sort='-x', title=group_col, axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
+        x=alt.X("Completion Rate %:Q", title="Completion Rate", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
         tooltip=[group_col, "Completion Rate %"]
-    ).properties(height=220)
+    ).properties(height=300)
     st.altair_chart(chart1, use_container_width=True)
 
 with c2:
     st.subheader("📊 Status Penugasan")
     chart2 = alt.Chart(status_df).mark_bar().encode(
-        y=alt.Y(group_col, sort=ordered_groups, title=group_col),
-        x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas"),
+        y=alt.Y(group_col, sort=ordered_groups, title=group_col, axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
+        x=alt.X("Count:Q", stack="zero", title="Jumlah Tugas", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
         color=alt.Color("Status:N", scale=alt.Scale(
             domain=["Graded", "Ungraded"],
             range=["#3b5ba3", "#c0392b"]
         )),
         tooltip=[group_col, "Status", "Count"]
-    ).properties(height=220)
+    ).properties(height=300)
     st.altair_chart(chart2, use_container_width=True)
 
 # === CHART 3 (FULL WIDTH) ===
 st.subheader("📌 Status Per Tugas")
 chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35)),
-    y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
+    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35, labelFontSize=10, titleFontSize=12)),
+    y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
     color=alt.Color("Status:N", scale=alt.Scale(
         domain=["Completed", "Not Completed"],
         range=["#27ae60", "#e74c3c"]
     )),
     tooltip=["Tugas", "Status", "Count"]
-).properties(height=240)
+).properties(height=320)
 st.altair_chart(chart3, use_container_width=True)
