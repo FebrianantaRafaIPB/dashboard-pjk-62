@@ -24,6 +24,19 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
+
+# === PENGADUAN FORM LINK ===
+st.markdown("---")
+st.markdown("📮 **Pengaduan PJK 62**")
+st.markdown(
+    '<a href="https://ipb.link/pengaduan-pjk-62" target="_blank">'
+    '<button style="background-color:#e74c3c;color:white;padding:8px 12px;'
+    'border:none;border-radius:6px;cursor:pointer;font-size:14px;'
+    'font-weight:bold;width:100%;">Kirim Pengaduan</button>'
+    '</a>',
+    unsafe_allow_html=True
+)
+
     st.header("🔍 Filter")
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
     kb_list = sorted(df["Kelompok Besar"].unique())
