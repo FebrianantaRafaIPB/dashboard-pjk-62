@@ -120,8 +120,8 @@ chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
     x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35, labelFontSize=10, titleFontSize=12)),
     y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
     color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Completed", "Not Completed"],
-        range=["#27ae60", "#e74c3c"]
+        domain=["Not Completed", "Completed"],  # 👈 ini bikin Not Completed di atas
+        range=["#e74c3c", "#27ae60"]
     )),
     tooltip=["Tugas", "Status", "Count"]
 ).properties(height=320)
