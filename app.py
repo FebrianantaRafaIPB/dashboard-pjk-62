@@ -17,8 +17,8 @@ df = load_data()
 # === CLEAN ===
 df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
 df["Kelompok Sedang"] = df["Kelompok Sedang"].fillna("").astype(str).str.strip()
-df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip()
-df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip()
+df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
+df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip().str.title()
 df = df[df["Kelompok Besar"] != ""]
 df = df[df["Kelompok Sedang"] != ""]
 
@@ -93,13 +93,13 @@ full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# === WRAP LABEL ===
+# WRAP LABEL
 def wrap_label(text, width=30):
     return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
 
 status_tugas_df["Tugas"] = status_tugas_df["Tugas"].apply(lambda x: wrap_label(x, width=30))
 
-# SORT FIX - paksa merah di atas
+# SORT - merah di atas
 status_tugas_df = status_tugas_df.sort_values(
     by=["Tugas", "Status"],
     key=lambda col: col.map({"Completed": 0, "Not Completed": 1})
