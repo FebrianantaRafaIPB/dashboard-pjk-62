@@ -132,7 +132,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 # === AI INSIGHT (DESKRIPTIF) ===
-st.subheader("🧠 Insight Otomatis")
+st.subheader("AI Insight")
 
 try:
     insight_lines = []
