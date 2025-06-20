@@ -92,6 +92,13 @@ all_status = ["Completed", "Not Completed"]
 full_index = pd.DataFrame(product(all_tugas, all_status), columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
+# PAKSA URUTAN STATUS UNTUK STACKING
+status_tugas_df["Status"] = pd.Categorical(
+    status_tugas_df["Status"],
+    categories=["Completed", "Not Completed"],
+    ordered=True
+)
+
 # === CHART 1 ===
 st.subheader("📈 Completion Rate")
 chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
@@ -117,10 +124,15 @@ st.altair_chart(chart2, use_container_width=True)
 # === CHART 3 ===
 st.subheader("📌 Status Per Tugas")
 chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-35, labelFontSize=10, titleFontSize=12)),
+    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(
+        labelAngle=-35,
+        labelFontSize=10,
+        titleFontSize=12,
+        labelLimit=None  # ✅ INI yang mencegah pemotongan label
+    )),
     y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10, titleFontSize=12)),
     color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Not Completed", "Completed"],  # 👈 ini bikin Not Completed di atas
+        domain=["Not Completed", "Completed"],
         range=["#e74c3c", "#27ae60"]
     )),
     tooltip=["Tugas", "Status", "Count"]
