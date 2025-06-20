@@ -93,7 +93,13 @@ full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# SORT FIX - paksa merah di atas dengan urutan baris literal
+# === WRAP LABEL ===
+def wrap_label(text, width=30):
+    return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
+
+status_tugas_df["Tugas"] = status_tugas_df["Tugas"].apply(lambda x: wrap_label(x, width=30))
+
+# SORT FIX - paksa merah di atas
 status_tugas_df = status_tugas_df.sort_values(
     by=["Tugas", "Status"],
     key=lambda col: col.map({"Completed": 0, "Not Completed": 1})
@@ -115,7 +121,7 @@ fig = px.bar(
 )
 
 fig.update_layout(
-    xaxis_tickangle=-45,
+    xaxis_tickangle=-15,
     xaxis_title=None,
     yaxis_title="Jumlah Mahasiswa",
     legend_title=None,
