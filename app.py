@@ -24,25 +24,24 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
-
-# === PENGADUAN FORM LINK ===
-st.markdown("---")
-st.markdown("📮 **Pengaduan PJK 62**")
-st.markdown(
-    '<a href="https://ipb.link/pengaduan-pjk-62" target="_blank">'
-    '<button style="background-color:#e74c3c;color:white;padding:8px 12px;'
-    'border:none;border-radius:6px;cursor:pointer;font-size:14px;'
-    'font-weight:bold;width:100%;">Kirim Pengaduan</button>'
-    '</a>',
-    unsafe_allow_html=True
-)
-
     st.header("🔍 Filter")
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
     kb_list = sorted(df["Kelompok Besar"].unique())
     ks_list = sorted(df["Kelompok Sedang"].unique())
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
     filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
+
+    # === PENGADUAN FORM LINK ===
+    st.markdown("---")
+    st.markdown("📮 **Pengaduan PJK 62**")
+    st.markdown(
+        '<a href="https://ipb.link/pengaduan-pjk-62" target="_blank">'
+        '<button style="background-color:#e74c3c;color:white;padding:8px 12px;'
+        'border:none;border-radius:6px;cursor:pointer;font-size:14px;'
+        'font-weight:bold;width:100%;">Kirim Pengaduan</button>'
+        '</a>',
+        unsafe_allow_html=True
+    )
 
 # === FILTERED DATA ===
 df_filtered = df.copy()
@@ -52,7 +51,7 @@ if filter_ks != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
 
 # === TITLE & METRICS ===
-st.title("DASHBOARD PJK MPKMB IPB 62 SARJANA")
+st.title("📊 DASHBOARD PJK MPKMB IPB 62 SARJANA")
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Maba", len(df_filtered))
 col2.metric("Maba Pita Merah", (df_filtered["Status Pita"] == "Pita Merah").sum())
@@ -62,8 +61,8 @@ col3.metric("Status Tidak Aktif", (df_filtered["StatusRegistrasi"] == "Tidak Akt
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
-st.subheader("Completion Rate")
-chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(  # Biru
+st.subheader("📈 Completion Rate")
+chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
     y=alt.Y(group_col, sort='-x', axis=alt.Axis(labelFontSize=10)),
     x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
     tooltip=[group_col, "Completion Rate %"]
@@ -84,14 +83,14 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
     x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
     color=alt.Color("Status:N", scale=alt.Scale(
         domain=["Graded", "Ungraded"],
-        range=["#3498db", "#e74c3c"]  # Biru & Merah
+        range=["#3498db", "#e74c3c"]
     )),
     tooltip=[group_col, "Status", "Count"]
 ).properties(height=320)
 st.altair_chart(chart2, use_container_width=True)
 
 # === CHART 3: Status Per Tugas (Plotly) ===
-st.subheader("Status Completion Per Tugas")
+st.subheader("📌 Status Per Tugas (Plotly)")
 
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
@@ -99,40 +98,34 @@ tugas_status = df_filtered[status_cols].melt(
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
-# Buat dataframe dengan kombinasi lengkap tugas x status
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
 all_tugas = tugas_status["Tugas"].unique()
 full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# WRAP LABEL
 def wrap_label(text, width=30):
     return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
-
 status_tugas_df["Tugas"] = status_tugas_df["Tugas"].apply(lambda x: wrap_label(x, width=30))
 
-# SORT - merah di atas
 status_tugas_df = status_tugas_df.sort_values(
     by=["Tugas", "Status"],
     key=lambda col: col.map({"Completed": 0, "Not Completed": 1})
 )
 
-# Buat chart Plotly
 fig = px.bar(
     status_tugas_df,
     x="Tugas",
     y="Count",
     color="Status",
     color_discrete_map={
-        "Completed": "#3498db",       # Biru
-        "Not Completed": "#e74c3c"    # Merah
+        "Completed": "#3498db",
+        "Not Completed": "#e74c3c"
     },
     barmode="stack",
     labels={"Count": "Jumlah Mahasiswa"},
     height=500
 )
-
 fig.update_layout(
     xaxis_tickangle=-15,
     xaxis_title=None,
@@ -141,12 +134,10 @@ fig.update_layout(
     margin=dict(t=10, b=120),
     font=dict(size=10)
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
 # === AI INSIGHT (DESKRIPTIF) ===
-st.subheader("AI Insight")
-
+st.subheader("🧠 Insight Otomatis")
 try:
     insight_lines = []
 
@@ -154,30 +145,24 @@ try:
     if total == 0:
         insight_lines.append("Tidak ada data tersedia pada filter saat ini.")
     else:
-        # Completion Rate
         cr_avg = df_filtered["Completion Rate %"].mean()
         insight_lines.append(f"• Dari total {total} maba, rata-rata Completion Rate adalah {cr_avg:.1f}%.")
 
-        # Graded/UnGraded Count
-        status_penugasan = melted.copy()
-        status_penugasan = status_penugasan.groupby("Status").size().to_dict()
+        status_penugasan = melted.groupby("Status").size().to_dict()
         for status in ["Graded", "Ungraded"]:
             if status in status_penugasan:
                 insight_lines.append(f"• Terdapat {status_penugasan[status]} tugas dengan status **{status}**.")
 
-        # Not Completed terbanyak
         status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
         if not status_counts.empty:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
             insight_lines.append(f"• Tugas **{worst_task}** adalah yang paling sering *Not Completed* ({worst_count} maba).")
 
-        # Tidak Aktif
         tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
         if tidak_aktif > 0:
             insight_lines.append(f"• Terdapat {tidak_aktif} maba dengan status **Tidak Aktif**.")
 
-        # Kelompok dengan CR rendah
         if group_col in df_filtered.columns:
             lowest_group = cr_df.sort_values("Completion Rate %").iloc[0]
             insight_lines.append(
