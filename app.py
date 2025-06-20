@@ -81,11 +81,6 @@ tugas_status = df_filtered[status_cols].melt(
 
 # Normalize values
 tugas_status["Status"] = tugas_status["Status"].astype(str).str.strip().str.title()
-
-# Debug: show unique values (optional)
-st.write("🧪 Nilai unik kolom 'Status':", tugas_status["Status"].unique())
-
-# Filter hanya nilai valid
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
 # Group & count
@@ -95,8 +90,6 @@ status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(n
 all_tugas = tugas_status["Tugas"].unique()
 all_status = ["Completed", "Not Completed"]
 full_index = pd.DataFrame(product(all_tugas, all_status), columns=["Tugas", "Status"])
-
-# Gabungkan
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
 # === CHART 1 ===
