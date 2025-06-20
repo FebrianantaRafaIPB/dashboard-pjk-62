@@ -54,16 +54,16 @@ sc1.metric("Total Maba", total_maba)
 sc2.metric("Maba Pita Merah", pita_merah)
 sc3.metric("Status Tidak Aktif", tidak_aktif)
 
-# === CHART 1: COMPLETION RATE ===
+# === CHART 1: COMPLETION RATE (HORIZONTAL) ===
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
 st.subheader("📈 Completion Rate")
 chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
-    x=alt.X(group_col, sort='-y'),
-    y=alt.Y("Completion Rate %:Q"),
-    tooltip=["Completion Rate %"]
-).properties(height=240)
+    y=alt.Y(group_col, sort='-x', title=group_col),
+    x=alt.X("Completion Rate %:Q", title="Completion Rate"),
+    tooltip=[group_col, "Completion Rate %"]
+).properties(height=260)
 st.altair_chart(chart1, use_container_width=True)
 
 # === CHART 2: STATUS PENILAIAN PER KELOMPOK ===
@@ -90,7 +90,7 @@ if penugasan_cols:
             range=["#3b5ba3", "#c0392b"]
         )),
         tooltip=[group_col, "Status", "Count"]
-    ).properties(height=260)
+    ).properties(height=280)
     st.altair_chart(chart2, use_container_width=True)
 
 # === CHART 3: STATUS PER TUGAS (COMPLETED VS NOT) ===
@@ -110,6 +110,6 @@ chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
         range=["#27ae60", "#e74c3c"]
     )),
     tooltip=["Tugas", "Status", "Count"]
-).properties(height=240)
+).properties(height=260)
 
 st.altair_chart(chart3, use_container_width=True)
