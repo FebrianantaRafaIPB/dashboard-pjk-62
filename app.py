@@ -23,19 +23,21 @@ df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.repla
 df = df[df["Kelompok Besar"] != ""]
 df = df[df["Kelompok Sedang"] != ""]
 
-# === UI FILTERS ===
+# === SIDEBAR FILTER ===
+with st.sidebar:
+    st.header("🔍 Filter")
+    dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
+
+    kelompok_besar_list = sorted(df["Kelompok Besar"].dropna().unique())
+    kelompok_besar_list = [x for x in kelompok_besar_list if x.strip() != ""]
+    filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kelompok_besar_list)
+
+    kelompok_sedang_list = sorted(df["Kelompok Sedang"].dropna().unique())
+    kelompok_sedang_list = [x for x in kelompok_sedang_list if x.strip() != ""]
+    filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + kelompok_sedang_list)
+
+# === TITLE ===
 st.title("📊 DASHBOARD PJK MPKMB IPB 62 SARJANA")
-cols = st.columns(3)
-
-dimensi = cols[0].selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
-
-kelompok_besar_list = sorted(df["Kelompok Besar"].dropna().unique())
-kelompok_besar_list = [x for x in kelompok_besar_list if x.strip() != ""]
-filter_kb = cols[1].selectbox("Kelompok Besar", ["(All)"] + kelompok_besar_list)
-
-kelompok_sedang_list = sorted(df["Kelompok Sedang"].dropna().unique())
-kelompok_sedang_list = [x for x in kelompok_sedang_list if x.strip() != ""]
-filter_ks = cols[2].selectbox("Kelompok Sedang", ["(All)"] + kelompok_sedang_list)
 
 # === FILTERED DATA ===
 df_filtered = df.copy()
