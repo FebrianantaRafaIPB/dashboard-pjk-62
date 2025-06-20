@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import plotly.express as px
 from itertools import product
 
 # === CONFIG PAGE ===
@@ -44,7 +45,7 @@ col1.metric("Total Maba", len(df_filtered))
 col2.metric("Maba Pita Merah", (df_filtered["Status Pita"] == "Pita Merah").sum())
 col3.metric("Status Tidak Aktif", (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum())
 
-# === CHART 1: Completion Rate ===
+# === CHART 1: Completion Rate (Altair) ===
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
@@ -56,7 +57,7 @@ chart1 = alt.Chart(cr_df).mark_bar(color="steelblue").encode(
 ).properties(height=320)
 st.altair_chart(chart1, use_container_width=True)
 
-# === CHART 2: Status Penugasan ===
+# === CHART 2: Status Penugasan (Altair) ===
 penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
 melted = df_filtered.melt(id_vars=[group_col], value_vars=penugasan_cols,
                           var_name="Tugas", value_name="Status").dropna()
@@ -76,13 +77,15 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
 ).properties(height=320)
 st.altair_chart(chart2, use_container_width=True)
 
-# === CHART 3: Status Per Tugas ===
+# === CHART 3: Status Per Tugas (Plotly) ===
+st.subheader("📌 Status Per Tugas (Plotly)")
+
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
     var_name="Tugas", value_name="Status").dropna()
-
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
+
 status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
 
 # Tambahkan kombinasi kosong
@@ -91,25 +94,35 @@ full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
                           columns=["Tugas", "Status"])
 status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# Urutan stack fix
-status_order = ["Completed", "Not Completed"]
-status_tugas_df["Status"] = pd.Categorical(status_tugas_df["Status"], categories=status_order, ordered=True)
+# Urutan stack
+status_tugas_df["Status"] = pd.Categorical(status_tugas_df["Status"],
+                                           categories=["Completed", "Not Completed"],
+                                           ordered=True)
 status_tugas_df = status_tugas_df.sort_values(["Tugas", "Status"])
 
-# CHART 3
-st.subheader("📌 Status Per Tugas")
-chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(
-        labelAngle=-35,
-        labelFontSize=10,
-        labelExpr="replace(datum.label, 'Status ', '')",  # remove "Status "
-        titleFontSize=12
-    )),
-    y=alt.Y("Count:Q", title="Jumlah Mahasiswa", axis=alt.Axis(labelFontSize=10)),
-    color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Not Completed", "Completed"],  # warna merah atas
-        range=["#e74c3c", "#27ae60"]
-    )),
-    tooltip=["Tugas", "Status", "Count"]
-).properties(height=340)
-st.altair_chart(chart3, use_container_width=True)
+# Bikin Chart 3
+fig = px.bar(
+    status_tugas_df,
+    x="Tugas",
+    y="Count",
+    color="Status",
+    color_discrete_map={
+        "Completed": "#27ae60",
+        "Not Completed": "#e74c3c"
+    },
+    category_orders={"Status": ["Completed", "Not Completed"]},
+    barmode="stack",
+    labels={"Count": "Jumlah Mahasiswa"},
+    height=500
+)
+
+fig.update_layout(
+    xaxis_tickangle=-45,
+    xaxis_title=None,
+    yaxis_title="Jumlah Mahasiswa",
+    legend_title=None,
+    margin=dict(t=10, b=120),
+    font=dict(size=10)
+)
+
+st.plotly_chart(fig, use_container_width=True)
