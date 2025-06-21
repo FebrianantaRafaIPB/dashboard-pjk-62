@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import plotly.express as px
 from itertools import product
 
 # === CONFIG PAGE ===
@@ -31,9 +30,8 @@ with st.sidebar:
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
     filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
 
-    # === PENGADUAN FORM LINK ===
     st.markdown("---")
-    st.markdown("📮 **Pengaduan PJK 62**")
+    st.markdown("**Pengaduan PJK 62**")
     st.markdown(
         '<a href="https://ipb.link/pengaduan-pjk-62" target="_blank">'
         '<button style="background-color:#e74c3c;color:white;padding:8px 12px;'
@@ -57,7 +55,7 @@ col1.metric("Total Maba", len(df_filtered))
 col2.metric("Maba Pita Merah", (df_filtered["Status Pita"] == "Pita Merah").sum())
 col3.metric("Status Tidak Aktif", (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum())
 
-# === CHART 1: Completion Rate (Altair) ===
+# === CHART 1: Completion Rate ===
 group_col = dimensi
 cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
 
@@ -69,7 +67,7 @@ chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
 ).properties(height=320)
 st.altair_chart(chart1, use_container_width=True)
 
-# === CHART 2: Status Penugasan (Altair) ===
+# === CHART 2: Status Penugasan ===
 penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
 melted = df_filtered.melt(id_vars=[group_col], value_vars=penugasan_cols,
                           var_name="Tugas", value_name="Status").dropna()
@@ -89,8 +87,8 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
 ).properties(height=320)
 st.altair_chart(chart2, use_container_width=True)
 
-# === CHART 3: Status Per Tugas (Plotly) ===
-st.subheader("Status Completion Per Tugas")
+# === CHART 3: Status Per Tugas (Altair) ===
+st.subheader("Status Per Tugas")
 
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
@@ -98,49 +96,30 @@ tugas_status = df_filtered[status_cols].melt(
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
-status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
-all_tugas = tugas_status["Tugas"].unique()
-full_index = pd.DataFrame(product(all_tugas, ["Completed", "Not Completed"]),
-                          columns=["Tugas", "Status"])
-status_tugas_df = full_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
-
 def wrap_label(text, width=30):
     return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
-status_tugas_df["Tugas"] = status_tugas_df["Tugas"].apply(lambda x: wrap_label(x, width=30))
+tugas_status["Tugas"] = tugas_status["Tugas"].apply(lambda x: wrap_label(x, width=30))
 
-status_tugas_df = status_tugas_df.sort_values(
-    by=["Tugas", "Status"],
-    key=lambda col: col.map({"Completed": 0, "Not Completed": 1})
-)
+status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
+all_index = pd.DataFrame(product(tugas_status["Tugas"].unique(), ["Completed", "Not Completed"]),
+                         columns=["Tugas", "Status"])
+status_tugas_df = all_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-fig = px.bar(
-    status_tugas_df,
-    x="Tugas",
-    y="Count",
-    color="Status",
-    color_discrete_map={
-        "Completed": "#3498db",
-        "Not Completed": "#e74c3c"
-    },
-    barmode="stack",
-    labels={"Count": "Jumlah Mahasiswa"},
-    height=500
-)
-fig.update_layout(
-    xaxis_tickangle=-15,
-    xaxis_title=None,
-    yaxis_title="Jumlah Mahasiswa",
-    legend_title=None,
-    margin=dict(t=10, b=120),
-    font=dict(size=10)
-)
-st.plotly_chart(fig, use_container_width=True)
+chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
+    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-20, labelFontSize=10)),
+    y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
+    color=alt.Color("Status:N", scale=alt.Scale(
+        domain=["Completed", "Not Completed"],
+        range=["#3498db", "#e74c3c"]
+    )),
+    tooltip=["Tugas", "Status", "Count"]
+).properties(height=380)
+st.altair_chart(chart3, use_container_width=True)
 
-# === AI INSIGHT (DESKRIPTIF) ===
+# === INSIGHT OTOMATIS ===
 st.subheader("SI Insight")
 try:
     insight_lines = []
-
     total = len(df_filtered)
     if total == 0:
         insight_lines.append("Tidak ada data tersedia pada filter saat ini.")
