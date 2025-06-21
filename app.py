@@ -23,16 +23,16 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
+    if st.button("🔄 Muat Ulang Data"):
+        st.cache_data.clear()
+        st.rerun()
+
     st.header("Filter")
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
     kb_list = sorted(df["Kelompok Besar"].unique())
     ks_list = sorted(df["Kelompok Sedang"].unique())
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
     filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
-
-    if st.button("🔄 Muat Ulang Data"):
-        st.cache_data.clear()
-        st.experimental_rerun()
 
     st.markdown("---")
     st.markdown("**Pengaduan PJK 62**")
