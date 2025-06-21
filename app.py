@@ -8,7 +8,7 @@ st.set_page_config(layout="wide", page_title="Dashboard PJK MPKMB IPB 62")
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    url = "https://docs.google.com/spreadsheets/d/1sWEVXl3YIWyvNJv08hZ4TrOBs2t8ndJXXP-VhKSp6mE/export?format=csv"
+    url = st.secrets["CSV_URL"]
     return pd.read_csv(url)
 
 df = load_data()
@@ -91,9 +91,8 @@ chart2 = alt.Chart(status_df).mark_bar().encode(
 ).properties(height=320)
 st.altair_chart(chart2, use_container_width=True)
 
-# === CHART 3: Status Per Tugas (Altair) ===
+# === CHART 3: Status Per Tugas ===
 st.subheader("Status Per Tugas")
-
 status_cols = df_filtered.columns[20:26]
 tugas_status = df_filtered[status_cols].melt(
     var_name="Tugas", value_name="Status").dropna()
