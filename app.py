@@ -6,7 +6,7 @@ from itertools import product
 # === CONFIG PAGE ===
 st.set_page_config(layout="wide", page_title="Dashboard PJK MPKMB IPB 62")
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
     url = "https://docs.google.com/spreadsheets/d/1sWEVXl3YIWyvNJv08hZ4TrOBs2t8ndJXXP-VhKSp6mE/export?format=csv"
     return pd.read_csv(url)
@@ -29,6 +29,10 @@ with st.sidebar:
     ks_list = sorted(df["Kelompok Sedang"].unique())
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
     filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
+
+    if st.button("🔄 Muat Ulang Data"):
+        st.cache_data.clear()
+        st.experimental_rerun()
 
     st.markdown("---")
     st.markdown("**Pengaduan PJK 62**")
