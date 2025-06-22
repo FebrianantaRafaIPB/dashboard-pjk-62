@@ -109,7 +109,7 @@ else:
             worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"<p><b>CR Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
+            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
@@ -120,9 +120,11 @@ else:
         """, unsafe_allow_html=True)
 
 # === TOGGLE PERSPEKTIF ===
-perspektif = st.radio("🔍 Lihat berdasarkan:", ["Performa Mahasiswa Baru", "Performa Penilai"], horizontal=True)
+with st.sidebar:
+    st.markdown("---")
+    perspektif = st.radio("🔍 Anda di sini sebagai:", ["PJK", "Panglima"], horizontal=True)
 
-if perspektif == "Performa Mahasiswa Baru":
+if perspektif == "PJK":
     st.subheader("Completion Rate")
     chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
         y=alt.Y(dimensi, sort='-x', axis=alt.Axis(labelFontSize=10)),
@@ -152,7 +154,7 @@ if perspektif == "Performa Mahasiswa Baru":
     ).properties(height=380)
     st.altair_chart(chart3, use_container_width=True)
 
-elif perspektif == "Performa Penilai":
+elif perspektif == "Panglima":
     st.subheader("Status Penugasan")
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
     ordered_groups = status_df[dimensi].unique().tolist()
