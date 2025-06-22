@@ -52,7 +52,7 @@ if filter_kb != "(All)":
 if filter_ks != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
 
-# === SI INSIGHT (SCORE CARD DI ATAS) ===
+# === SI INSIGHT (CARD DENGAN BORDER) ===
 st.subheader("SI Insight")
 
 total = len(df_filtered)
@@ -63,14 +63,14 @@ else:
     pita_merah = (df_filtered["Status Pita"] == "Pita Merah").sum()
     tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
 
-    # Untuk chart penugasan
+    # Untuk penugasan
     penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
     melted = df_filtered.melt(id_vars=[dimensi], value_vars=penugasan_cols,
                               var_name="Tugas", value_name="Status").dropna()
     melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
     status_penugasan = melted.groupby("Status").size().to_dict()
 
-    # Untuk chart status tugas
+    # Untuk status tugas
     status_cols = df_filtered.columns[20:26]
     tugas_status = df_filtered[status_cols].melt(
         var_name="Tugas", value_name="Status").dropna()
@@ -81,32 +81,46 @@ else:
     cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
     lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if not cr_df.empty else None
 
-    # Tampilkan sebagai 3 kolom score card
+    # Tampilkan 3 kolom
     sc1, sc2, sc3 = st.columns(3)
 
     with sc1:
-        st.markdown("### 🎓 Ringkasan Maba")
-        st.metric("Jumlah Maba", f"{total}")
-        st.metric("Pita Merah", pita_merah)
-        st.metric("Completion Rate", f"{cr_avg:.1f}%")
+        st.markdown(f"""
+        <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
+            <h4>🎓 Ringkasan Maba</h4>
+            <p><b>Jumlah Maba:</b> {total}</p>
+            <p><b>Pita Merah:</b> {pita_merah}</p>
+            <p><b>Completion Rate:</b> {cr_avg:.1f}%</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with sc2:
-        st.markdown("### 📝 Status Penugasan")
-        st.metric("Graded", status_penugasan.get("Graded", 0))
-        st.metric("Ungraded", status_penugasan.get("Ungraded", 0))
-        st.metric("Tidak Aktif", tidak_aktif)
+        st.markdown(f"""
+        <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
+            <h4>📝 Status Penugasan</h4>
+            <p><b>Graded:</b> {status_penugasan.get("Graded", 0)}</p>
+            <p><b>Ungraded:</b> {status_penugasan.get("Ungraded", 0)}</p>
+            <p><b>Tidak Aktif:</b> {tidak_aktif}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with sc3:
-        st.markdown("### ⚠️ Temuan Khusus")
+        worst_tugas_html = ""
         if not status_counts.empty:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
-            st.markdown(f"Tugas ❌<br><b>{worst_task}</b><br>{worst_count} Not Completed", unsafe_allow_html=True)
+            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+        cr_terendah_html = ""
         if lowest_group is not None:
-            st.markdown(f"Completion Rate Terendah:<br><b>{lowest_group[dimensi]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
+            cr_terendah_html = f"<p><b>CR Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
-# === TITLE & METRICS ===
-st.title("DASHBOARD PJK MPKMB IPB 62 SARJANA")
+        st.markdown(f"""
+        <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
+            <h4>⚠️ Temuan Khusus</h4>
+            {worst_tugas_html}
+            {cr_terendah_html}
+        </div>
+        """, unsafe_allow_html=True)
 
 # === CHART 1: Completion Rate ===
 group_col = dimensi
