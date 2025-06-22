@@ -27,6 +27,9 @@ with st.sidebar:
         st.cache_data.clear()
         st.rerun()
 
+    st.markdown("---")
+    perspektif = st.radio("🔍 Anda di sini sebagai:", ["PJK", "Panglima"], horizontal=True)
+
     st.header("Filter")
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
     kb_list = sorted(df["Kelompok Besar"].unique())
@@ -120,9 +123,6 @@ else:
         """, unsafe_allow_html=True)
 
 # === TOGGLE PERSPEKTIF ===
-with st.sidebar:
-    st.markdown("---")
-    perspektif = st.radio("🔍 Anda di sini sebagai:", ["PJK", "Panglima"], horizontal=True)
 
 if perspektif == "PJK":
     st.subheader("Completion Rate")
