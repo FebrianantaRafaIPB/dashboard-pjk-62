@@ -23,7 +23,7 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
-    if st.button("\ud83d\udd04 Muat Ulang Data"):
+    if st.button("Muat Ulang Data"):
         st.cache_data.clear()
         st.rerun()
 
@@ -84,7 +84,7 @@ else:
     with sc1:
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>\ud83c\udf93 Ringkasan Maba</h4>
+            <h4>🎓 Ringkasan Maba</h4>
             <p><b>Jumlah Maba:</b> {total}</p>
             <p><b>Pita Merah:</b> {pita_merah}</p>
             <p><b>Completion Rate:</b> {cr_avg:.1f}%</p>
@@ -94,7 +94,7 @@ else:
     with sc2:
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>\ud83d\udcdd Status Penugasan</h4>
+            <h4>📝 Status Penugasan</h4>
             <p><b>Graded:</b> {status_penugasan.get("Graded", 0)}</p>
             <p><b>Ungraded:</b> {status_penugasan.get("Ungraded", 0)}</p>
             <p><b>Tidak Aktif:</b> {tidak_aktif}</p>
@@ -106,21 +106,21 @@ else:
         if not status_counts.empty:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
-            worst_tugas_html = f"<p><b>Tugas \u274c:</b> {worst_task} ({worst_count} Not Completed)</p>"
+            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
+            cr_terendah_html = f"<p><b>CR Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>\u26a0\ufe0f Temuan Khusus</h4>
+            <h4>⚠️ Temuan Khusus</h4>
             {worst_tugas_html}
             {cr_terendah_html}
         </div>
         """, unsafe_allow_html=True)
 
 # === TOGGLE PERSPEKTIF ===
-perspektif = st.radio("\ud83d\udd0d Lihat berdasarkan:", ["Performa Mahasiswa Baru", "Performa Penilai"], horizontal=True)
+perspektif = st.radio("🔍 Lihat berdasarkan:", ["Performa Mahasiswa Baru", "Performa Penilai"], horizontal=True)
 
 if perspektif == "Performa Mahasiswa Baru":
     st.subheader("Completion Rate")
