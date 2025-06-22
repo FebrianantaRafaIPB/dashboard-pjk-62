@@ -103,7 +103,7 @@ else:
             worst_count = status_counts.max()
             st.markdown(f"Tugas ❌<br><b>{worst_task}</b><br>{worst_count} Not Completed", unsafe_allow_html=True)
         if lowest_group is not None:
-            st.markdown(f"CR Terendah:<br><b>{lowest_group[dimensi]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
+            st.markdown(f"Completion Rate Terendah:<br><b>{lowest_group[dimensi]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
 
 # === TITLE & METRICS ===
 st.title("DASHBOARD PJK MPKMB IPB 62 SARJANA")
