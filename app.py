@@ -52,12 +52,61 @@ if filter_kb != "(All)":
 if filter_ks != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
 
+# === SI INSIGHT (SCORE CARD DI ATAS) ===
+st.subheader("SI Insight")
+
+total = len(df_filtered)
+if total == 0:
+    st.warning("Tidak ada data tersedia pada filter saat ini.")
+else:
+    cr_avg = df_filtered["Completion Rate %"].mean()
+    pita_merah = (df_filtered["Status Pita"] == "Pita Merah").sum()
+    tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
+
+    # Untuk chart penugasan
+    penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
+    melted = df_filtered.melt(id_vars=[dimensi], value_vars=penugasan_cols,
+                              var_name="Tugas", value_name="Status").dropna()
+    melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
+    status_penugasan = melted.groupby("Status").size().to_dict()
+
+    # Untuk chart status tugas
+    status_cols = df_filtered.columns[20:26]
+    tugas_status = df_filtered[status_cols].melt(
+        var_name="Tugas", value_name="Status").dropna()
+    tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
+    tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
+    status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
+
+    cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
+    lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if not cr_df.empty else None
+
+    # Tampilkan sebagai 3 kolom score card
+    sc1, sc2, sc3 = st.columns(3)
+
+    with sc1:
+        st.markdown("### 🎓 Ringkasan Maba")
+        st.metric("Jumlah Maba", f"{total}")
+        st.metric("Pita Merah", pita_merah)
+        st.metric("Completion Rate", f"{cr_avg:.1f}%")
+
+    with sc2:
+        st.markdown("### 📝 Status Penugasan")
+        st.metric("Graded", status_penugasan.get("Graded", 0))
+        st.metric("Ungraded", status_penugasan.get("Ungraded", 0))
+        st.metric("Tidak Aktif", tidak_aktif)
+
+    with sc3:
+        st.markdown("### ⚠️ Temuan Khusus")
+        if not status_counts.empty:
+            worst_task = status_counts.idxmax()
+            worst_count = status_counts.max()
+            st.markdown(f"Tugas ❌<br><b>{worst_task}</b><br>{worst_count} Not Completed", unsafe_allow_html=True)
+        if lowest_group is not None:
+            st.markdown(f"CR Terendah:<br><b>{lowest_group[dimensi]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
+
 # === TITLE & METRICS ===
 st.title("DASHBOARD PJK MPKMB IPB 62 SARJANA")
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Maba", len(df_filtered))
-col2.metric("Maba Pita Merah", (df_filtered["Status Pita"] == "Pita Merah").sum())
-col3.metric("Status Tidak Aktif", (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum())
 
 # === CHART 1: Completion Rate ===
 group_col = dimensi
@@ -72,10 +121,6 @@ chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
 st.altair_chart(chart1, use_container_width=True)
 
 # === CHART 2: Status Penugasan ===
-penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
-melted = df_filtered.melt(id_vars=[group_col], value_vars=penugasan_cols,
-                          var_name="Tugas", value_name="Status").dropna()
-melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
 status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
 ordered_groups = status_df[group_col].unique().tolist()
 
@@ -93,11 +138,6 @@ st.altair_chart(chart2, use_container_width=True)
 
 # === CHART 3: Status Per Tugas ===
 st.subheader("Status Per Tugas")
-status_cols = df_filtered.columns[20:26]
-tugas_status = df_filtered[status_cols].melt(
-    var_name="Tugas", value_name="Status").dropna()
-tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
-tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
 def wrap_label(text, width=30):
     return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
@@ -118,41 +158,3 @@ chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
     tooltip=["Tugas", "Status", "Count"]
 ).properties(height=380)
 st.altair_chart(chart3, use_container_width=True)
-
-# === SI INSIGHT (SCORE CARD) ===
-st.subheader("SI Insight")
-
-total = len(df_filtered)
-if total == 0:
-    st.warning("Tidak ada data tersedia pada filter saat ini.")
-else:
-    cr_avg = df_filtered["Completion Rate %"].mean()
-    status_penugasan = melted.groupby("Status").size().to_dict()
-    status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
-    tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
-    lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if group_col in cr_df.columns else None
-
-    sc1, sc2, sc3 = st.columns(3)
-
-    with sc1:
-        st.markdown("### 🎓 Total Maba & CR")
-        st.metric("Jumlah Maba", f"{total}")
-        st.metric("Rata-rata Completion", f"{cr_avg:.1f}%")
-
-    with sc2:
-        st.markdown("### 📝 Status Penugasan")
-        graded = status_penugasan.get("Graded", 0)
-        ungraded = status_penugasan.get("Ungraded", 0)
-        st.metric("Graded", graded)
-        st.metric("Ungraded", ungraded)
-
-    with sc3:
-        st.markdown("### ⚠️ Temuan Khusus")
-        st.metric("Tidak Aktif", tidak_aktif)
-        if not status_counts.empty:
-            worst_task = status_counts.idxmax()
-            worst_count = status_counts.max()
-            st.markdown(f"Tugas ❌<br><b>{worst_task}</b><br>{worst_count} Not Completed", unsafe_allow_html=True)
-        if lowest_group is not None:
-            st.markdown(f"CR Terendah:<br><b>{lowest_group[group_col]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
-
