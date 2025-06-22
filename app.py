@@ -23,7 +23,7 @@ df = df[df["Kelompok Sedang"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
-    if st.button("🔄 Muat Ulang Data"):
+    if st.button("\ud83d\udd04 Muat Ulang Data"):
         st.cache_data.clear()
         st.rerun()
 
@@ -63,14 +63,12 @@ else:
     pita_merah = (df_filtered["Status Pita"] == "Pita Merah").sum()
     tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
 
-    # Untuk penugasan
     penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
     melted = df_filtered.melt(id_vars=[dimensi], value_vars=penugasan_cols,
                               var_name="Tugas", value_name="Status").dropna()
     melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
     status_penugasan = melted.groupby("Status").size().to_dict()
 
-    # Untuk status tugas
     status_cols = df_filtered.columns[20:26]
     tugas_status = df_filtered[status_cols].melt(
         var_name="Tugas", value_name="Status").dropna()
@@ -81,13 +79,12 @@ else:
     cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
     lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if not cr_df.empty else None
 
-    # Tampilkan 3 kolom
     sc1, sc2, sc3 = st.columns(3)
 
     with sc1:
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>🎓 Ringkasan Maba</h4>
+            <h4>\ud83c\udf93 Ringkasan Maba</h4>
             <p><b>Jumlah Maba:</b> {total}</p>
             <p><b>Pita Merah:</b> {pita_merah}</p>
             <p><b>Completion Rate:</b> {cr_avg:.1f}%</p>
@@ -97,7 +94,7 @@ else:
     with sc2:
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>📝 Status Penugasan</h4>
+            <h4>\ud83d\udcdd Status Penugasan</h4>
             <p><b>Graded:</b> {status_penugasan.get("Graded", 0)}</p>
             <p><b>Ungraded:</b> {status_penugasan.get("Ungraded", 0)}</p>
             <p><b>Tidak Aktif:</b> {tidak_aktif}</p>
@@ -109,66 +106,64 @@ else:
         if not status_counts.empty:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
-            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+            worst_tugas_html = f"<p><b>Tugas \u274c:</b> {worst_task} ({worst_count} Not Completed)</p>"
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"<p><b>CR Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
+            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
-            <h4>⚠️ Temuan Khusus</h4>
+            <h4>\u26a0\ufe0f Temuan Khusus</h4>
             {worst_tugas_html}
             {cr_terendah_html}
         </div>
         """, unsafe_allow_html=True)
 
-# === CHART 1: Completion Rate ===
-group_col = dimensi
-cr_df = df_filtered.groupby(group_col)["Completion Rate %"].mean().reset_index()
+# === TOGGLE PERSPEKTIF ===
+perspektif = st.radio("\ud83d\udd0d Lihat berdasarkan:", ["Performa Mahasiswa Baru", "Performa Penilai"], horizontal=True)
 
-st.subheader("Completion Rate")
-chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
-    y=alt.Y(group_col, sort='-x', axis=alt.Axis(labelFontSize=10)),
-    x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
-    tooltip=[group_col, "Completion Rate %"]
-).properties(height=320)
-st.altair_chart(chart1, use_container_width=True)
+if perspektif == "Performa Mahasiswa Baru":
+    st.subheader("Completion Rate")
+    chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
+        y=alt.Y(dimensi, sort='-x', axis=alt.Axis(labelFontSize=10)),
+        x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
+        tooltip=[dimensi, "Completion Rate %"]
+    ).properties(height=320)
+    st.altair_chart(chart1, use_container_width=True)
 
-# === CHART 2: Status Penugasan ===
-status_df = melted.groupby([group_col, "Status"]).size().reset_index(name="Count")
-ordered_groups = status_df[group_col].unique().tolist()
+    st.subheader("Status Per Tugas")
+    def wrap_label(text, width=30):
+        return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
+    tugas_status["Tugas"] = tugas_status["Tugas"].apply(lambda x: wrap_label(x, width=30))
 
-st.subheader("Status Penugasan")
-chart2 = alt.Chart(status_df).mark_bar().encode(
-    y=alt.Y(group_col, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
-    x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
-    color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Graded", "Ungraded"],
-        range=["#3498db", "#e74c3c"]
-    )),
-    tooltip=[group_col, "Status", "Count"]
-).properties(height=320)
-st.altair_chart(chart2, use_container_width=True)
+    status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
+    all_index = pd.DataFrame(product(tugas_status["Tugas"].unique(), ["Completed", "Not Completed"]),
+                             columns=["Tugas", "Status"])
+    status_tugas_df = all_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
-# === CHART 3: Status Per Tugas ===
-st.subheader("Status Per Tugas")
+    chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
+        x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-20, labelFontSize=10)),
+        y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
+        color=alt.Color("Status:N", scale=alt.Scale(
+            domain=["Completed", "Not Completed"],
+            range=["#3498db", "#e74c3c"]
+        )),
+        tooltip=["Tugas", "Status", "Count"]
+    ).properties(height=380)
+    st.altair_chart(chart3, use_container_width=True)
 
-def wrap_label(text, width=30):
-    return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
-tugas_status["Tugas"] = tugas_status["Tugas"].apply(lambda x: wrap_label(x, width=30))
+elif perspektif == "Performa Penilai":
+    st.subheader("Status Penugasan")
+    status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
+    ordered_groups = status_df[dimensi].unique().tolist()
 
-status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
-all_index = pd.DataFrame(product(tugas_status["Tugas"].unique(), ["Completed", "Not Completed"]),
-                         columns=["Tugas", "Status"])
-status_tugas_df = all_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
-
-chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
-    x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-20, labelFontSize=10)),
-    y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
-    color=alt.Color("Status:N", scale=alt.Scale(
-        domain=["Completed", "Not Completed"],
-        range=["#3498db", "#e74c3c"]
-    )),
-    tooltip=["Tugas", "Status", "Count"]
-).properties(height=380)
-st.altair_chart(chart3, use_container_width=True)
+    chart2 = alt.Chart(status_df).mark_bar().encode(
+        y=alt.Y(dimensi, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
+        x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
+        color=alt.Color("Status:N", scale=alt.Scale(
+            domain=["Graded", "Ungraded"],
+            range=["#3498db", "#e74c3c"]
+        )),
+        tooltip=[dimensi, "Status", "Count"]
+    ).properties(height=320)
+    st.altair_chart(chart2, use_container_width=True)
