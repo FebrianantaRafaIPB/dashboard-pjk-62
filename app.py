@@ -119,40 +119,39 @@ chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
 ).properties(height=380)
 st.altair_chart(chart3, use_container_width=True)
 
-# === INSIGHT OTOMATIS ===
+# === SI INSIGHT (SCORE CARD) ===
 st.subheader("SI Insight")
-try:
-    insight_lines = []
-    total = len(df_filtered)
-    if total == 0:
-        insight_lines.append("Tidak ada data tersedia pada filter saat ini.")
-    else:
-        cr_avg = df_filtered["Completion Rate %"].mean()
-        insight_lines.append(f"• Dari total {total} maba, rata-rata Completion Rate adalah {cr_avg:.1f}%.")
 
-        status_penugasan = melted.groupby("Status").size().to_dict()
-        for status in ["Graded", "Ungraded"]:
-            if status in status_penugasan:
-                insight_lines.append(f"• Terdapat {status_penugasan[status]} tugas dengan status **{status}**.")
+total = len(df_filtered)
+if total == 0:
+    st.warning("Tidak ada data tersedia pada filter saat ini.")
+else:
+    cr_avg = df_filtered["Completion Rate %"].mean()
+    status_penugasan = melted.groupby("Status").size().to_dict()
+    status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
+    tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
+    lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if group_col in cr_df.columns else None
 
-        status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
+    sc1, sc2, sc3 = st.columns(3)
+
+    with sc1:
+        st.markdown("### 🎓 Total Maba & CR")
+        st.metric("Jumlah Maba", f"{total}")
+        st.metric("Rata-rata Completion", f"{cr_avg:.1f}%")
+
+    with sc2:
+        st.markdown("### 📝 Status Penugasan")
+        graded = status_penugasan.get("Graded", 0)
+        ungraded = status_penugasan.get("Ungraded", 0)
+        st.metric("Graded", graded)
+        st.metric("Ungraded", ungraded)
+
+    with sc3:
+        st.markdown("### ⚠️ Temuan Khusus")
+        st.metric("Tidak Aktif", tidak_aktif)
         if not status_counts.empty:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
-            insight_lines.append(f"• Tugas **{worst_task}** adalah yang paling sering *Not Completed* ({worst_count} maba).")
-
-        tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
-        if tidak_aktif > 0:
-            insight_lines.append(f"• Terdapat {tidak_aktif} maba dengan status **Tidak Aktif**.")
-
-        if group_col in df_filtered.columns:
-            lowest_group = cr_df.sort_values("Completion Rate %").iloc[0]
-            insight_lines.append(
-                f"• Kelompok **{lowest_group[group_col]}** memiliki Completion Rate terendah ({lowest_group['Completion Rate %']:.1f}%)."
-            )
-
-    for line in insight_lines:
-        st.markdown(line)
-
-except Exception as e:
-    st.warning(f"Gagal menghasilkan insight otomatis: {e}")
+            st.markdown(f"Tugas ❌<br><b>{worst_task}</b><br>{worst_count} Not Completed", unsafe_allow_html=True)
+        if lowest_group is not None:
+            st.markdown(f"CR Terendah:<br><b>{lowest_group[group_col]}</b><br>{lowest_group['Completion Rate %']:.1f}%", unsafe_allow_html=True)
