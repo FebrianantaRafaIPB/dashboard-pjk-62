@@ -75,17 +75,14 @@ else:
     status_penugasan = melted.groupby("Status").size().to_dict()
 
     status_cols = df_filtered.columns[20:26]
-    tugas_status = df_filtered[status_cols].melt(
-        var_name="Tugas", value_name="Status").dropna()
+    tugas_status = df_filtered[status_cols].melt(var_name="Tugas", value_name="Status").dropna()
     tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
     tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
     status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
 
-    # --- NEW: CR Terendah Berdasarkan PJK ---
     cr_df_full = df_filtered.groupby("Kelompok Sedang / Nama PJK")["Completion Rate %"].mean().reset_index()
     lowest_group = cr_df_full.sort_values("Completion Rate %").iloc[0] if not cr_df_full.empty else None
 
-    # --- OLD: tetap pakai dimensi untuk chart
     cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
 
     sc1, sc2, sc3 = st.columns(3)
@@ -160,6 +157,14 @@ if perspektif == "PJK":
     st.altair_chart(chart3, use_container_width=True)
 
 elif perspektif == "Panglima":
+    st.subheader("Completion Rate per " + dimensi)
+    chart_cr = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
+        y=alt.Y(dimensi, sort='-x', axis=alt.Axis(labelFontSize=10)),
+        x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
+        tooltip=[dimensi, "Completion Rate %"]
+    ).properties(height=320)
+    st.altair_chart(chart_cr, use_container_width=True)
+
     st.subheader("Status Penugasan")
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
     ordered_groups = status_df[dimensi].unique().tolist()
