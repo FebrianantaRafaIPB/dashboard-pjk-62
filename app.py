@@ -1,3 +1,8 @@
+import streamlit as st
+import pandas as pd
+import altair as alt
+from itertools import product
+
 # === INSIGHT DAN CHARTS ===
 st.subheader("SI Insight")
 total = len(df_filtered)
