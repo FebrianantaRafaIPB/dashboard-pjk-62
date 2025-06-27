@@ -112,9 +112,16 @@ else:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
             worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
+            label = "Kelompok"
+            if dimensi == "Kelompok Sedang / Nama PJK":
+                label = "Kelompok / PJK"
+            elif dimensi == "Kelompok Besar":
+                label = "Kelompok Besar"
+
+            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {label} {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
