@@ -147,7 +147,7 @@ chart_cr = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
 ).properties(height=320)
 st.altair_chart(chart_cr, use_container_width=True)
 
-# === CHART: STATUS PER TUGAS ===
+# === CHART: STATUS PER TUGAS / PENUGASAN ===
 if perspektif == "PJK":
     st.subheader(f"Status Completion per Tugas ({dimensi})")
 
@@ -177,7 +177,10 @@ elif perspektif == "Panglima":
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
     total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
     status_df["Percent"] = status_df["Count"] / total_per_group * 100
-    ordered_groups = status_df[dimensi].unique().tolist()
+
+    # Urutkan berdasarkan jumlah Graded tertinggi ke terendah
+    graded_counts = status_df[status_df["Status"] == "Graded"].set_index(dimensi)["Count"]
+    ordered_groups = graded_counts.sort_values(ascending=False).index.tolist()
 
     chart_melted = alt.Chart(status_df).mark_bar().encode(
         y=alt.Y(dimensi, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
