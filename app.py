@@ -15,11 +15,11 @@ df = load_data()
 
 # === CLEAN DATA ===
 df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
-df["Kelompok Sedang"] = df["Kelompok Sedang"].fillna("").astype(str).str.strip()
+df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("").astype(str).str.strip()
 df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
 df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip().str.title()
 df = df[df["Kelompok Besar"] != ""]
-df = df[df["Kelompok Sedang"] != ""]
+df = df[df["Kelompok Sedang / Nama PJK"] != ""]
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
@@ -31,17 +31,12 @@ with st.sidebar:
     perspektif = st.radio("🔍 Anda di sini sebagai:", ["PJK", "Panglima"], horizontal=True)
 
     st.header("Filter")
-    dimensi = st.selectbox(
-        "Dimension:",
-        ["Kelompok Besar", "Kelompok Sedang", "Kelompok Sedang / Nama PJK"]
-    )
+    dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang / Nama PJK"])
 
     kb_list = sorted(df["Kelompok Besar"].unique())
-    ks_list = sorted(df["Kelompok Sedang"].unique())
     ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
 
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
-    filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
     filter_ksnp = st.selectbox("Kelompok Sedang / Nama PJK", ["(All)"] + ksnp_list)
 
     st.markdown("---")
@@ -59,8 +54,6 @@ with st.sidebar:
 df_filtered = df.copy()
 if filter_kb != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Besar"] == filter_kb]
-if filter_ks != "(All)":
-    df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
 if filter_ksnp != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang / Nama PJK"] == filter_ksnp]
 
