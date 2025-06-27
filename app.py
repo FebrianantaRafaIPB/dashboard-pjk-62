@@ -113,7 +113,8 @@ with sc3:
     if perspektif == "Panglima":
         ungraded_df = df_filtered[penugasan_cols].copy()
         ungraded_df["Kelompok Sedang / Nama PJK"] = df_filtered["Kelompok Sedang / Nama PJK"]
-        ungraded_long = ungraded_df.melt(id_vars=["Kelompok Sedang / Nama PJK"], value_vars=penugasan_cols,
+        ungraded_long = ungraded_df.melt(id_vars=["Kelompok Sedang / Nama PJK"],
+                                         value_vars=penugasan_cols,
                                          var_name="Tugas", value_name="Status")
         ungraded_long = ungraded_long[ungraded_long["Status"] == "Ungraded"]
 
@@ -147,7 +148,7 @@ chart_cr = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
 ).properties(height=320)
 st.altair_chart(chart_cr, use_container_width=True)
 
-# === CHART: STATUS PER TUGAS / PENUGASAN ===
+# === CHART: STATUS PER TUGAS ===
 if perspektif == "PJK":
     st.subheader(f"Status Completion per Tugas ({dimensi})")
 
@@ -178,7 +179,6 @@ elif perspektif == "Panglima":
     total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
     status_df["Percent"] = status_df["Count"] / total_per_group * 100
 
-    # Urutkan berdasarkan jumlah Graded tertinggi ke terendah
     graded_counts = status_df[status_df["Status"] == "Graded"].set_index(dimensi)["Count"]
     ordered_groups = graded_counts.sort_values(ascending=False).index.tolist()
 
