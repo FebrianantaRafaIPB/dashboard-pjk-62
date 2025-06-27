@@ -179,8 +179,9 @@ elif perspektif == "Panglima":
     total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
     status_df["Percent"] = status_df["Count"] / total_per_group * 100
 
-    graded_counts = status_df[status_df["Status"] == "Graded"].set_index(dimensi)["Count"]
-    ordered_groups = graded_counts.sort_values(ascending=False).index.tolist()
+    # Urut berdasarkan persentase Graded tertinggi
+    graded_percent = status_df[status_df["Status"] == "Graded"].set_index(dimensi)["Percent"]
+    ordered_groups = graded_percent.sort_values(ascending=False).index.tolist()
 
     chart_melted = alt.Chart(status_df).mark_bar().encode(
         y=alt.Y(dimensi, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
