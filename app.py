@@ -11,7 +11,26 @@ def load_data():
     url = st.secrets["CSV_URL"]
     return pd.read_csv(url)
 
-df = load_data()
+try:
+    df = load_data()
+except Exception as e:
+    st.error("🚨 Gagal memuat data. Periksa URL CSV di secrets atau koneksi.")
+    st.markdown(
+        '<a href="https://ipb.link/lapor-dashboard-pjk" target="_blank">'
+        '<button style="background-color:#e74c3c;color:white;padding:10px 16px;'
+        'border:none;border-radius:8px;cursor:pointer;font-size:16px;'
+        'font-weight:bold;">Laporkan Masalah</button>'
+        '</a>',
+        unsafe_allow_html=True
+    )
+    st.stop()
+
+# === CEK KOMPONEN WAJIB ===
+required_cols = ["Kelompok Besar", "Kelompok Sedang / Nama PJK", "Status Pita", "StatusRegistrasi"]
+missing_cols = [col for col in required_cols if col not in df.columns]
+if missing_cols:
+    st.error(f"❌ Kolom berikut hilang dari data: {', '.join(missing_cols)}")
+    st.stop()
 
 # === CLEAN DATA ===
 df.columns = df.columns.str.replace(r'\.\d+$', '', regex=True)
@@ -35,10 +54,15 @@ with st.sidebar:
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang / Nama PJK"])
 
     kb_list = sorted(df["Kelompok Besar"].unique())
-    ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
-
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
+
+    if filter_kb == "(All)":
+        ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
+    else:
+        ksnp_list = sorted(df[df["Kelompok Besar"] == filter_kb]["Kelompok Sedang / Nama PJK"].unique())
+
     filter_ksnp = st.selectbox("Kelompok Sedang / Nama PJK", ["(All)"] + ksnp_list)
+    st.caption(f"Menampilkan {len(ksnp_list)} kelompok sedang sesuai filter kelompok besar.")
 
     st.markdown("---")
     st.markdown("**Pengaduan PJK 62**")
@@ -58,7 +82,7 @@ if filter_kb != "(All)":
 if filter_ksnp != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang / Nama PJK"] == filter_ksnp]
 
-# === INSIGHT DAN PERSIAPAN DATA ===
+# === INSIGHT DAN CHARTS ===
 st.subheader("SI Insight")
 total = len(df_filtered)
 if total == 0:
@@ -79,18 +103,17 @@ status_cols = df_filtered.columns[20:30]
 tugas_status = df_filtered[status_cols].melt(var_name="Tugas", value_name="Status").dropna()
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
+status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
 
 cr_df_full = df_filtered.groupby("Kelompok Sedang / Nama PJK")["Completion Rate %"].mean().reset_index()
 lowest_group = cr_df_full.sort_values("Completion Rate %").iloc[0] if not cr_df_full.empty else None
 cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
 
-status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
-
 sc1, sc2, sc3 = st.columns(3)
 with sc1:
     st.markdown(f"""
     <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
-        <h4>\U0001F393 Ringkasan Maba</h4>
+        <h4>🎓 Ringkasan Maba</h4>
         <p><b>Jumlah Maba:</b> {total}</p>
         <p><b>Pita Merah:</b> {pita_merah}</p>
         <p><b>Completion Rate:</b> {cr_avg:.1f}%</p>
@@ -99,7 +122,7 @@ with sc1:
 with sc2:
     st.markdown(f"""
     <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
-        <h4>\U0001F4DD Status Penugasan</h4>
+        <h4>📝 Status Penugasan</h4>
         <p><b>Graded:</b> {status_penugasan.get("Graded", 0)}</p>
         <p><b>Ungraded:</b> {status_penugasan.get("Ungraded", 0)}</p>
         <p><b>Tidak Aktif:</b> {tidak_aktif}</p>
@@ -112,7 +135,6 @@ with sc3:
         worst_task = status_counts.idxmax()
         worst_count = status_counts.max()
         worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
-
     st.markdown(f"""
     <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
         <h4>⚠️ Temuan Khusus</h4>
