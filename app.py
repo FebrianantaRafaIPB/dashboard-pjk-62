@@ -35,9 +35,14 @@ with st.sidebar:
     dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang / Nama PJK"])
 
     kb_list = sorted(df["Kelompok Besar"].unique())
-    ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
-
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
+
+    # === DEPENDENT DROPDOWN ===
+    if filter_kb != "(All)":
+        ksnp_list = sorted(df[df["Kelompok Besar"] == filter_kb]["Kelompok Sedang / Nama PJK"].unique())
+    else:
+        ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
+
     filter_ksnp = st.selectbox("Kelompok Sedang / Nama PJK", ["(All)"] + ksnp_list)
 
     st.markdown("---")
