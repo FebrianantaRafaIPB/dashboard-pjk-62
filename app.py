@@ -172,7 +172,7 @@ if perspektif == "PJK":
     st.altair_chart(chart_status, use_container_width=True)
 
 elif perspektif == "Panglima":
-    st.subheader(f"Status Penugasan ({dimensi}) - Persentase")
+    st.subheader(f"Status Penugasan ({dimensi})")
 
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
     total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
