@@ -111,41 +111,19 @@ with sc2:
     </div>""", unsafe_allow_html=True)
 
 with sc3:
-    if perspektif == "PJK":
-        cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
-        worst_tugas_html = ""
-        if not status_counts.empty:
-            worst_task = status_counts.idxmax()
-            worst_count = status_counts.max()
-            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+    cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
+    worst_tugas_html = ""
+    if not status_counts.empty:
+        worst_task = status_counts.idxmax()
+        worst_count = status_counts.max()
+        worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
 
-        st.markdown(f"""
-        <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
-            <h4>⚠️ Temuan Khusus</h4>
-            {worst_tugas_html}
-            {cr_terendah_html}
-        </div>""", unsafe_allow_html=True)
-
-    elif perspektif == "Panglima":
-        ungraded_melt = df_filtered.melt(
-            id_vars=["Kelompok Sedang / Nama PJK"],
-            value_vars=penugasan_cols,
-            var_name="Tugas",
-            value_name="Status"
-        ).dropna()
-        ungraded_melt = ungraded_melt[ungraded_melt["Status"] == "Ungraded"]
-
-        if not ungraded_melt.empty:
-            top_row = ungraded_melt.groupby(["Kelompok Sedang / Nama PJK", "Tugas"]).size().reset_index(name="Count").sort_values("Count", ascending=False).iloc[0]
-            ungraded_html = f"<p><b>Ungraded Tertinggi:</b> {top_row['Kelompok Sedang / Nama PJK']} - {top_row['Tugas']} ({top_row['Count']} tugas)</p>"
-        else:
-            ungraded_html = "<p><b>Ungraded Tertinggi:</b> -</p>"
-
-        st.markdown(f"""
-        <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
-            <h4>⚠️ Temuan Khusus</h4>
-            {ungraded_html}
-        </div>""", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
+        <h4>⚠️ Temuan Khusus</h4>
+        {worst_tugas_html}
+        {cr_terendah_html}
+    </div>""", unsafe_allow_html=True)
 
 # === CHART: COMPLETION RATE ===
 st.subheader(f"Completion Rate ({dimensi})")
