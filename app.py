@@ -111,18 +111,27 @@ with sc2:
     </div>""", unsafe_allow_html=True)
 
 with sc3:
-    cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
-    worst_tugas_html = ""
-    if not status_counts.empty:
-        worst_task = status_counts.idxmax()
-        worst_count = status_counts.max()
-        worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+    if perspektif == "Panglima":
+        ungraded_df = melted[melted["Status"] == "Ungraded"]
+        if not ungraded_df.empty:
+            ungraded_group = ungraded_df.groupby("Kelompok Sedang / Nama PJK").size().reset_index(name="Ungraded Count")
+            top_ungraded = ungraded_group.sort_values("Ungraded Count", ascending=False).iloc[0]
+            highlight_html = f"<p><b>Ungraded Tertinggi:</b> {top_ungraded['Kelompok Sedang / Nama PJK']} ({top_ungraded['Ungraded Count']} tugas)</p>"
+        else:
+            highlight_html = "<p>Tidak ada data Ungraded.</p>"
+    else:
+        cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
+        worst_tugas_html = ""
+        if not status_counts.empty:
+            worst_task = status_counts.idxmax()
+            worst_count = status_counts.max()
+            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+        highlight_html = f"{worst_tugas_html}{cr_terendah_html}"
 
     st.markdown(f"""
     <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
         <h4>⚠️ Temuan Khusus</h4>
-        {worst_tugas_html}
-        {cr_terendah_html}
+        {highlight_html}
     </div>""", unsafe_allow_html=True)
 
 # === CHART: COMPLETION RATE ===
