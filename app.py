@@ -45,7 +45,7 @@ with st.sidebar:
     filter_ksnp = st.selectbox("Kelompok Sedang / Nama PJK", ["(All)"] + ksnp_list)
 
     st.markdown("---")
-    st.markdown("**Pengaduan PJK 62**")
+    st.markdown("**Pengaduan PJK**")
     st.markdown(
         '<a href="https://ipb.link/pengaduan-pjk-62" target="_blank">'
         '<button style="background-color:#e74c3c;color:white;padding:8px 12px;'
