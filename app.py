@@ -112,16 +112,9 @@ else:
             worst_task = status_counts.idxmax()
             worst_count = status_counts.max()
             worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
-
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"""
-            <p><b>Completion Rate Terendah:</b></p>
-            <ul style='margin-top:-8px'>
-                <li><b>{lowest_group[dimensi]}</b></li>
-                <li>{lowest_group['Completion Rate %']:.1f}%</li>
-            </ul>
-            """
+            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
@@ -150,4 +143,31 @@ if perspektif == "PJK":
     status_tugas_df = tugas_status.groupby(["Tugas", "Status"]).size().reset_index(name="Count")
     all_index = pd.DataFrame(product(tugas_status["Tugas"].unique(), ["Completed", "Not Completed"]),
                              columns=["Tugas", "Status"])
-    status_tugas_df = all_index.merge(statu_
+    status_tugas_df = all_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
+
+    chart3 = alt.Chart(status_tugas_df).mark_bar().encode(
+        x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-20, labelFontSize=10)),
+        y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
+        color=alt.Color("Status:N", scale=alt.Scale(
+            domain=["Completed", "Not Completed"],
+            range=["#3498db", "#e74c3c"]
+        )),
+        tooltip=["Tugas", "Status", "Count"]
+    ).properties(height=380)
+    st.altair_chart(chart3, use_container_width=True)
+
+elif perspektif == "Panglima":
+    st.subheader("Status Penugasan")
+    status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
+    ordered_groups = status_df[dimensi].unique().tolist()
+
+    chart2 = alt.Chart(status_df).mark_bar().encode(
+        y=alt.Y(dimensi, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
+        x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
+        color=alt.Color("Status:N", scale=alt.Scale(
+            domain=["Graded", "Ungraded"],
+            range=["#3498db", "#e74c3c"]
+        )),
+        tooltip=[dimensi, "Status", "Count"]
+    ).properties(height=320)
+    st.altair_chart(chart2, use_container_width=True)
