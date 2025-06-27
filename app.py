@@ -74,7 +74,7 @@ else:
     melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
     status_penugasan = melted.groupby("Status").size().to_dict()
 
-    status_cols = df_filtered.columns[20:26]
+    status_cols = df_filtered.columns[20:30]
     tugas_status = df_filtered[status_cols].melt(
         var_name="Tugas", value_name="Status").dropna()
     tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
