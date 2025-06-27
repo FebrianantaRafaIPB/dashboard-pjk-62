@@ -127,10 +127,17 @@ with sc3:
         </div>""", unsafe_allow_html=True)
 
     elif perspektif == "Panglima":
-        ungraded_group = melted[melted["Status"] == "Ungraded"].groupby(dimensi).size().reset_index(name="Count")
-        if not ungraded_group.empty:
-            ungraded_top = ungraded_group.sort_values("Count", ascending=False).iloc[0]
-            ungraded_html = f"<p><b>Ungraded Tertinggi:</b> {ungraded_top[dimensi]} ({ungraded_top['Count']} tugas)</p>"
+        ungraded_melt = df_filtered.melt(
+            id_vars=["Kelompok Sedang / Nama PJK"],
+            value_vars=penugasan_cols,
+            var_name="Tugas",
+            value_name="Status"
+        ).dropna()
+        ungraded_melt = ungraded_melt[ungraded_melt["Status"] == "Ungraded"]
+
+        if not ungraded_melt.empty:
+            top_row = ungraded_melt.groupby(["Kelompok Sedang / Nama PJK", "Tugas"]).size().reset_index(name="Count").sort_values("Count", ascending=False).iloc[0]
+            ungraded_html = f"<p><b>Ungraded Tertinggi:</b> {top_row['Kelompok Sedang / Nama PJK']} - {top_row['Tugas']} ({top_row['Count']} tugas)</p>"
         else:
             ungraded_html = "<p><b>Ungraded Tertinggi:</b> -</p>"
 
