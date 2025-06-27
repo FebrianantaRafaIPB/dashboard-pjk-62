@@ -81,8 +81,12 @@ else:
     tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
     status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
 
+    # --- NEW: CR Terendah Berdasarkan PJK ---
+    cr_df_full = df_filtered.groupby("Kelompok Sedang / Nama PJK")["Completion Rate %"].mean().reset_index()
+    lowest_group = cr_df_full.sort_values("Completion Rate %").iloc[0] if not cr_df_full.empty else None
+
+    # --- OLD: tetap pakai dimensi untuk chart
     cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
-    lowest_group = cr_df.sort_values("Completion Rate %").iloc[0] if not cr_df.empty else None
 
     sc1, sc2, sc3 = st.columns(3)
 
@@ -114,7 +118,7 @@ else:
             worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
         cr_terendah_html = ""
         if lowest_group is not None:
-            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group[dimensi]} ({lowest_group['Completion Rate %']:.1f}%)</p>"
+            cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>"
 
         st.markdown(f"""
         <div style="border:1px solid #ccc; border-radius:10px; padding:15px; margin-bottom:10px;">
@@ -125,7 +129,6 @@ else:
         """, unsafe_allow_html=True)
 
 # === TOGGLE PERSPEKTIF ===
-
 if perspektif == "PJK":
     st.subheader("Completion Rate")
     chart1 = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
