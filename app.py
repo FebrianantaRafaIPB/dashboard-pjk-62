@@ -111,19 +111,34 @@ with sc2:
     </div>""", unsafe_allow_html=True)
 
 with sc3:
-    cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
-    worst_tugas_html = ""
-    if not status_counts.empty:
-        worst_task = status_counts.idxmax()
-        worst_count = status_counts.max()
-        worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
+    if perspektif == "PJK":
+        cr_terendah_html = f"<p><b>Completion Rate Terendah:</b> {lowest_group['Kelompok Sedang / Nama PJK']} ({lowest_group['Completion Rate %']:.1f}%)</p>" if lowest_group is not None else ""
+        worst_tugas_html = ""
+        if not status_counts.empty:
+            worst_task = status_counts.idxmax()
+            worst_count = status_counts.max()
+            worst_tugas_html = f"<p><b>Tugas ❌:</b> {worst_task} ({worst_count} Not Completed)</p>"
 
-    st.markdown(f"""
-    <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
-        <h4>⚠️ Temuan Khusus</h4>
-        {worst_tugas_html}
-        {cr_terendah_html}
-    </div>""", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
+            <h4>⚠️ Temuan Khusus</h4>
+            {worst_tugas_html}
+            {cr_terendah_html}
+        </div>""", unsafe_allow_html=True)
+
+    elif perspektif == "Panglima":
+        ungraded_group = melted[melted["Status"] == "Ungraded"].groupby(dimensi).size().reset_index(name="Count")
+        if not ungraded_group.empty:
+            ungraded_top = ungraded_group.sort_values("Count", ascending=False).iloc[0]
+            ungraded_html = f"<p><b>Ungraded Tertinggi:</b> {ungraded_top[dimensi]} ({ungraded_top['Count']} tugas)</p>"
+        else:
+            ungraded_html = "<p><b>Ungraded Tertinggi:</b> -</p>"
+
+        st.markdown(f"""
+        <div style='border:1px solid #ccc; border-radius:10px; padding:15px;'>
+            <h4>⚠️ Temuan Khusus</h4>
+            {ungraded_html}
+        </div>""", unsafe_allow_html=True)
 
 # === CHART: COMPLETION RATE ===
 st.subheader(f"Completion Rate ({dimensi})")
