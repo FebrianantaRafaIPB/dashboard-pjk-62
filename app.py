@@ -37,7 +37,6 @@ with st.sidebar:
     kb_list = sorted(df["Kelompok Besar"].unique())
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
 
-    # === DEPENDENT DROPDOWN ===
     if filter_kb != "(All)":
         ksnp_list = sorted(df[df["Kelompok Besar"] == filter_kb]["Kelompok Sedang / Nama PJK"].unique())
     else:
@@ -63,7 +62,7 @@ if filter_kb != "(All)":
 if filter_ksnp != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang / Nama PJK"] == filter_ksnp]
 
-# === INSIGHT DAN PERSIAPAN DATA ===
+# === INSIGHT & DATA PREP ===
 st.subheader("SI Insight")
 total = len(df_filtered)
 if total == 0:
@@ -112,9 +111,14 @@ with sc2:
 
 with sc3:
     if perspektif == "Panglima":
-        ungraded_df = melted[melted["Status"] == "Ungraded"]
-        if not ungraded_df.empty:
-            ungraded_group = ungraded_df.groupby("Kelompok Sedang / Nama PJK").size().reset_index(name="Ungraded Count")
+        ungraded_df = df_filtered[penugasan_cols].copy()
+        ungraded_df["Kelompok Sedang / Nama PJK"] = df_filtered["Kelompok Sedang / Nama PJK"]
+        ungraded_long = ungraded_df.melt(id_vars=["Kelompok Sedang / Nama PJK"], value_vars=penugasan_cols,
+                                         var_name="Tugas", value_name="Status")
+        ungraded_long = ungraded_long[ungraded_long["Status"] == "Ungraded"]
+
+        if not ungraded_long.empty:
+            ungraded_group = ungraded_long.groupby("Kelompok Sedang / Nama PJK").size().reset_index(name="Ungraded Count")
             top_ungraded = ungraded_group.sort_values("Ungraded Count", ascending=False).iloc[0]
             highlight_html = f"<p><b>Ungraded Tertinggi:</b> {top_ungraded['Kelompok Sedang / Nama PJK']} ({top_ungraded['Ungraded Count']} tugas)</p>"
         else:
@@ -146,6 +150,7 @@ st.altair_chart(chart_cr, use_container_width=True)
 # === CHART: STATUS PER TUGAS ===
 if perspektif == "PJK":
     st.subheader(f"Status per Tugas ({dimensi})")
+
     def wrap_label(text, width=30):
         return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
 
