@@ -31,11 +31,18 @@ with st.sidebar:
     perspektif = st.radio("🔍 Anda di sini sebagai:", ["PJK", "Panglima"], horizontal=True)
 
     st.header("Filter")
-    dimensi = st.selectbox("Dimension:", ["Kelompok Besar", "Kelompok Sedang"])
+    dimensi = st.selectbox(
+        "Dimension:",
+        ["Kelompok Besar", "Kelompok Sedang", "Kelompok Sedang / Nama PJK"]
+    )
+
     kb_list = sorted(df["Kelompok Besar"].unique())
     ks_list = sorted(df["Kelompok Sedang"].unique())
+    ksnp_list = sorted(df["Kelompok Sedang / Nama PJK"].unique())
+
     filter_kb = st.selectbox("Kelompok Besar", ["(All)"] + kb_list)
     filter_ks = st.selectbox("Kelompok Sedang", ["(All)"] + ks_list)
+    filter_ksnp = st.selectbox("Kelompok Sedang / Nama PJK", ["(All)"] + ksnp_list)
 
     st.markdown("---")
     st.markdown("**Pengaduan PJK 62**")
@@ -54,6 +61,8 @@ if filter_kb != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Besar"] == filter_kb]
 if filter_ks != "(All)":
     df_filtered = df_filtered[df_filtered["Kelompok Sedang"] == filter_ks]
+if filter_ksnp != "(All)":
+    df_filtered = df_filtered[df_filtered["Kelompok Sedang / Nama PJK"] == filter_ksnp]
 
 # === SI INSIGHT (CARD DENGAN BORDER) ===
 st.subheader("SI Insight")
