@@ -149,7 +149,7 @@ st.altair_chart(chart_cr, use_container_width=True)
 
 # === CHART: STATUS PER TUGAS ===
 if perspektif == "PJK":
-    st.subheader(f"Status Compeltion per Tugas ({dimensi})")
+    st.subheader(f"Status Completion per Tugas ({dimensi})")
 
     def wrap_label(text, width=30):
         return '\n'.join([text[i:i+width] for i in range(0, len(text), width)])
