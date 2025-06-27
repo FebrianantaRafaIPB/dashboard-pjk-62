@@ -172,17 +172,20 @@ if perspektif == "PJK":
     st.altair_chart(chart_status, use_container_width=True)
 
 elif perspektif == "Panglima":
-    st.subheader(f"Status Penugasan ({dimensi})")
+    st.subheader(f"Status Penugasan ({dimensi}) - Persentase")
+
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
+    total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
+    status_df["Percent"] = status_df["Count"] / total_per_group * 100
     ordered_groups = status_df[dimensi].unique().tolist()
 
     chart_melted = alt.Chart(status_df).mark_bar().encode(
         y=alt.Y(dimensi, sort=ordered_groups, axis=alt.Axis(labelFontSize=10)),
-        x=alt.X("Count:Q", stack="zero", axis=alt.Axis(labelFontSize=10)),
+        x=alt.X("Percent:Q", stack="normalize", axis=alt.Axis(title="Persentase (%)", labelFontSize=10)),
         color=alt.Color("Status:N", scale=alt.Scale(
             domain=["Graded", "Ungraded"],
             range=["#3498db", "#e74c3c"]
         )),
-        tooltip=[dimensi, "Status", "Count"]
+        tooltip=[dimensi, "Status", "Count", alt.Tooltip("Percent:Q", format=".1f")]
     ).properties(height=320)
     st.altair_chart(chart_melted, use_container_width=True)
