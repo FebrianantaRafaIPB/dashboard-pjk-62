@@ -162,7 +162,7 @@ if perspektif == "PJK":
     status_tugas_df = all_index.merge(status_tugas_df, on=["Tugas", "Status"], how="left").fillna(0)
 
     chart_status = alt.Chart(status_tugas_df).mark_bar().encode(
-        x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-20, labelFontSize=10)),
+        x=alt.X("Tugas:N", sort=None, axis=alt.Axis(labelAngle=-70, labelFontSize=10)),
         y=alt.Y("Count:Q", title="Jumlah Mahasiswa"),
         color=alt.Color("Status:N", scale=alt.Scale(
             domain=["Completed", "Not Completed"],
