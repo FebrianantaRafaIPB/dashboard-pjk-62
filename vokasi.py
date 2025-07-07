@@ -4,11 +4,7 @@ import altair as alt
 from itertools import product
 
 # === CONFIG PAGE ===
-<<<<<<< HEAD
 st.set_page_config(layout="wide", page_title="Dashboard PJK Vokasi MPKMB IPB 62")
-=======
-st.set_page_config(layout="wide", page_title="Dashboard PJK Sarjana MPKMB IPB 62")
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
 
 @st.cache_data(show_spinner=False)
 def load_data():
@@ -19,7 +15,6 @@ df = load_data()
 
 # === CLEAN DATA ===
 df.columns = df.columns.str.replace(r'\.\d+$', '', regex=True)
-<<<<<<< HEAD
 df["Kelompok Besar"] = df.get("Kelompok Besar", "").fillna("").astype(str).str.strip()
 df["Kelompok Sedang / Nama PJK"] = df.get("Kelompok Sedang / Nama PJK", "").fillna("").astype(str).str.strip()
 df["Status Pita"] = df.get("Status Pita", "").fillna("").astype(str).str.strip().str.title()
@@ -28,14 +23,6 @@ if "Completion Rate %" in df.columns:
     df["Completion Rate %"] = pd.to_numeric(df["Completion Rate %"], errors="coerce")
 df = df[df["Kelompok Besar"].str.len() > 0]
 df = df[df["Kelompok Sedang / Nama PJK"].str.len() > 0]
-=======
-df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
-df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("").astype(str).str.strip()
-df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
-df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip().str.title()
-df = df[df["Kelompok Besar"] != ""]
-df = df[df["Kelompok Sedang / Nama PJK"] != ""]
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
@@ -84,52 +71,31 @@ if total == 0:
     st.warning("Tidak ada data tersedia pada filter saat ini.")
     st.stop()
 
-<<<<<<< HEAD
 cr_avg = df_filtered["Completion Rate %"].mean(skipna=True) if "Completion Rate %" in df_filtered.columns else 0
-=======
-cr_avg = df_filtered["Completion Rate %"].mean()
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
 pita_merah = (df_filtered["Status Pita"] == "Pita Merah").sum()
 tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
 
 penugasan_cols = [col for col in df.columns if "Penugasan" in col or "Challenge" in col]
-<<<<<<< HEAD
 status_penugasan = {"Graded": 0, "Ungraded": 0}
 melted = pd.DataFrame()
 
 if penugasan_cols:
     melted = df_filtered.melt(id_vars=[dimensi], value_vars=penugasan_cols,
-                            var_name="Tugas", value_name="Status").dropna()
+                              var_name="Tugas", value_name="Status").dropna()
     melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
     status_penugasan = melted.groupby("Status").size().to_dict()
-=======
-melted = df_filtered.melt(id_vars=[dimensi], value_vars=penugasan_cols,
-                          var_name="Tugas", value_name="Status").dropna()
-melted = melted[melted["Status"].isin(["Graded", "Ungraded"])]
-status_penugasan = melted.groupby("Status").size().to_dict()
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
 
 status_cols = df_filtered.columns[20:30]
 tugas_status = df_filtered[status_cols].melt(var_name="Tugas", value_name="Status").dropna()
 tugas_status["Status"] = tugas_status["Status"].str.strip().str.title()
 tugas_status = tugas_status[tugas_status["Status"].isin(["Completed", "Not Completed"])]
 
-<<<<<<< HEAD
 cr_df_full = df_filtered.groupby("Kelompok Sedang / Nama PJK")["Completion Rate %"].mean().reset_index() if "Completion Rate %" in df.columns else pd.DataFrame()
 lowest_group = cr_df_full.sort_values("Completion Rate %").iloc[0] if not cr_df_full.empty else None
 cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index() if "Completion Rate %" in df.columns else pd.DataFrame()
-
 status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
 
 # === INSIGHT BOXES ===
-=======
-cr_df_full = df_filtered.groupby("Kelompok Sedang / Nama PJK")["Completion Rate %"].mean().reset_index()
-lowest_group = cr_df_full.sort_values("Completion Rate %").iloc[0] if not cr_df_full.empty else None
-cr_df = df_filtered.groupby(dimensi)["Completion Rate %"].mean().reset_index()
-
-status_counts = tugas_status[tugas_status["Status"] == "Not Completed"].groupby("Tugas").size()
-
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
 sc1, sc2, sc3 = st.columns(3)
 with sc1:
     st.markdown(f"""
@@ -150,11 +116,7 @@ with sc2:
     </div>""", unsafe_allow_html=True)
 
 with sc3:
-<<<<<<< HEAD
     if perspektif == "Panglima" and not melted.empty:
-=======
-    if perspektif == "Panglima":
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
         ungraded_df = df_filtered[penugasan_cols].copy()
         ungraded_df["Kelompok Sedang / Nama PJK"] = df_filtered["Kelompok Sedang / Nama PJK"]
         ungraded_long = ungraded_df.melt(id_vars=["Kelompok Sedang / Nama PJK"],
@@ -184,7 +146,6 @@ with sc3:
     </div>""", unsafe_allow_html=True)
 
 # === CHART: COMPLETION RATE ===
-<<<<<<< HEAD
 if not cr_df.empty:
     st.subheader(f"Completion Rate ({dimensi})")
     chart_cr = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
@@ -196,18 +157,6 @@ if not cr_df.empty:
 
 # === CHART: STATUS PER TUGAS ===
 if perspektif == "PJK" and not tugas_status.empty:
-=======
-st.subheader(f"Completion Rate ({dimensi})")
-chart_cr = alt.Chart(cr_df).mark_bar(color="#3498db").encode(
-    y=alt.Y(dimensi, sort='-x', axis=alt.Axis(labelFontSize=10)),
-    x=alt.X("Completion Rate %:Q", axis=alt.Axis(labelFontSize=10)),
-    tooltip=[dimensi, "Completion Rate %"]
-).properties(height=320)
-st.altair_chart(chart_cr, use_container_width=True)
-
-# === CHART: STATUS PER TUGAS ===
-if perspektif == "PJK":
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
     st.subheader(f"Status Completion per Tugas ({dimensi})")
 
     def wrap_label(text, width=30):
@@ -230,21 +179,13 @@ if perspektif == "PJK":
     ).properties(height=380)
     st.altair_chart(chart_status, use_container_width=True)
 
-<<<<<<< HEAD
 elif perspektif == "Panglima" and not melted.empty:
-=======
-elif perspektif == "Panglima":
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
     st.subheader(f"Status Penugasan ({dimensi})")
 
     status_df = melted.groupby([dimensi, "Status"]).size().reset_index(name="Count")
     total_per_group = status_df.groupby(dimensi)["Count"].transform("sum")
     status_df["Percent"] = status_df["Count"] / total_per_group * 100
 
-<<<<<<< HEAD
-=======
-    # Urut berdasarkan persentase Graded tertinggi
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
     graded_percent = status_df[status_df["Status"] == "Graded"].set_index(dimensi)["Percent"]
     ordered_groups = graded_percent.sort_values(ascending=False).index.tolist()
 
@@ -258,7 +199,3 @@ elif perspektif == "Panglima":
         tooltip=[dimensi, "Status", "Count", alt.Tooltip("Percent:Q", format=".1f")]
     ).properties(height=320)
     st.altair_chart(chart_melted, use_container_width=True)
-<<<<<<< HEAD
-=======
-
->>>>>>> eb03053f6d860a0ec5d4b619ff78a68bb5ed199d
