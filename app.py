@@ -4,7 +4,7 @@ import altair as alt
 from itertools import product
 
 # === CONFIG PAGE ===
-st.set_page_config(layout="wide", page_title="Dashboard PJK MPKMB IPB 62")
+st.set_page_config(layout="wide", page_title="Dashboard PJK Sarjana MPKMB IPB 62")
 
 @st.cache_data(show_spinner=False)
 def load_data():
