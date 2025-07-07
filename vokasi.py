@@ -8,7 +8,7 @@ st.set_page_config(layout="wide", page_title="Dashboard PJK Sarjana MPKMB IPB 62
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    url = st.secrets["CSV_URL"]
+    url = st.secrets["CSV_URL_VOKASI"]
     return pd.read_csv(url)
 
 df = load_data()
