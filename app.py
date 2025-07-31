@@ -14,6 +14,7 @@ def load_data():
 df = load_data()
 
 # === CLEAN DATA ===
+df.columns = df.columns.str.strip().str.replace(r"\s+", " ", regex=True)
 df.columns = df.columns.str.replace(r'\.\d+$', '', regex=True)
 df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
 df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("").astype(str).str.strip()
