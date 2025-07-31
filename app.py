@@ -16,11 +16,13 @@ df = load_data()
 # === CLEAN DATA ===
 df.columns = df.columns.str.strip().str.replace(r"\s+", " ", regex=True)
 df.columns = df.columns.str.replace(r'\.\d+$', '', regex=True)
-df["Kelompok Besar"] = df["Kelompok Besar"].fillna("").astype(str).str.strip()
+kb_col = df.columns[3]
+df[kb_col] = df[kb_col].fillna("").astype(str).str.strip()
+df = df[df[kb_col] != ""]
+df = df.rename(columns={kb_col: "Kelompok Besar"})
 df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("").astype(str).str.strip()
 df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
 df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip().str.title()
-df = df[df["Kelompok Besar"] != ""]
 df = df[df["Kelompok Sedang / Nama PJK"] != ""]
 
 # === SIDEBAR FILTER ===
