@@ -14,17 +14,13 @@ def load_data():
 df = load_data()
 
 # === CLEAN DATA ===
-# Membersihkan kolom nama dan menghilangkan spasi ekstra
 df.columns = df.columns.str.strip().str.replace(r"\s+", " ", regex=True)
 df.columns = df.columns.str.replace(r'\.\d+$', '', regex=True)
-
-# Mengganti NaN dengan nilai default atau menghapus data yang tidak valid
-df[kb_col] = df.columns[3]
+kb_col = df.columns[3]
 df[kb_col] = df[kb_col].fillna("").astype(str).str.strip()
 df = df[df[kb_col] != ""]
 df = df.rename(columns={kb_col: "Kelompok Besar"})
-
-# Pembersihan kolom dengan menghilangkan NaN dan memastikan data sesuai format
+# Mengganti NaN dengan nilai default atau menghapus data yang tidak valid (misal: empty string, atau data salah format)
 df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("Tidak Diketahui").astype(str).str.strip()
 df["Status Pita"] = df["Status Pita"].fillna("Tidak Diketahui").astype(str).str.strip().str.title()
 df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("Tidak Diketahui").astype(str).str.strip().str.title()
@@ -32,12 +28,6 @@ df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("Tidak Diketahui").astype
 # Hapus baris yang memiliki "Kelompok Sedang / Nama PJK" kosong atau "Tidak Diketahui"
 df = df[df["Kelompok Sedang / Nama PJK"] != "Tidak Diketahui"]
 
-# Pembersihan Completion Rate % (hapus simbol % dan koma, lalu konversi ke numerik)
-df["Completion Rate %"] = df["Completion Rate %"].replace({'%': '', ',': ''}, regex=True)
-df["Completion Rate %"] = pd.to_numeric(df["Completion Rate %"], errors='coerce')
-
-# Ganti NaN dengan 0 atau nilai lain yang lebih sesuai
-df["Completion Rate %"].fillna(0, inplace=True)
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
@@ -86,7 +76,6 @@ if total == 0:
     st.warning("Tidak ada data tersedia pada filter saat ini.")
     st.stop()
 
-# Perhitungan Completion Rate % dan status lainnya
 cr_avg = df_filtered["Completion Rate %"].mean()
 pita_merah = (df_filtered["Status Pita"] == "Pita Merah").sum()
 tidak_aktif = (df_filtered["StatusRegistrasi"] == "Tidak Aktif").sum()
@@ -211,3 +200,4 @@ elif perspektif == "Panglima":
         tooltip=[dimensi, "Status", "Count", alt.Tooltip("Percent:Q", format=".1f")]
     ).properties(height=320)
     st.altair_chart(chart_melted, use_container_width=True)
+
