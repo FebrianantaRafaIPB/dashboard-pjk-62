@@ -20,10 +20,14 @@ kb_col = df.columns[3]
 df[kb_col] = df[kb_col].fillna("").astype(str).str.strip()
 df = df[df[kb_col] != ""]
 df = df.rename(columns={kb_col: "Kelompok Besar"})
-df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("").astype(str).str.strip()
-df["Status Pita"] = df["Status Pita"].fillna("").astype(str).str.strip().str.title()
-df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("").astype(str).str.strip().str.title()
-df = df[df["Kelompok Sedang / Nama PJK"] != ""]
+# Mengganti NaN dengan nilai default atau menghapus data yang tidak valid (misal: empty string, atau data salah format)
+df["Kelompok Sedang / Nama PJK"] = df["Kelompok Sedang / Nama PJK"].fillna("Tidak Diketahui").astype(str).str.strip()
+df["Status Pita"] = df["Status Pita"].fillna("Tidak Diketahui").astype(str).str.strip().str.title()
+df["StatusRegistrasi"] = df["StatusRegistrasi"].fillna("Tidak Diketahui").astype(str).str.strip().str.title()
+
+# Hapus baris yang memiliki "Kelompok Sedang / Nama PJK" kosong atau "Tidak Diketahui"
+df = df[df["Kelompok Sedang / Nama PJK"] != "Tidak Diketahui"]
+
 
 # === SIDEBAR FILTER ===
 with st.sidebar:
@@ -196,4 +200,5 @@ elif perspektif == "Panglima":
         tooltip=[dimensi, "Status", "Count", alt.Tooltip("Percent:Q", format=".1f")]
     ).properties(height=320)
     st.altair_chart(chart_melted, use_container_width=True)
+
 
